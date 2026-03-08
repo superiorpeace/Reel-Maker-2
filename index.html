@@ -33,7 +33,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;
 .timecode{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:1px;}
 
 /* ── MAIN (3 columns) ── */
-.main{flex:1;display:grid;grid-template-columns:260px 1fr 240px;overflow:hidden;}
+.main{flex:1;display:grid;grid-template-columns:260px 1fr 270px;overflow:hidden;}
 
 /* ── LEFT PANEL ── */
 .left-col{border-right:1px solid var(--border);overflow-y:auto;overflow-x:hidden;
@@ -43,7 +43,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;
 
 /* ── CENTER (preview) ── */
 .center-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  padding:12px 0 8px;overflow-y:auto;background:var(--bg);}
+  padding:12px 0 8px;overflow-y:auto;background:var(--bg);min-width:0;}
 .phone-wrap{background:#0c0c18;border:2px solid rgba(255,255,255,.08);border-radius:22px;
   padding:5px;box-shadow:0 20px 50px rgba(0,0,0,.8);}
 .phone-notch{height:4px;width:38px;background:#1a1a28;border-radius:99px;margin:0 auto 5px;}
@@ -216,15 +216,15 @@ textarea{min-height:52px;}
    TIMELINE
    ═══════════════════════════════ */
 .tl-section{
-  flex-shrink:0;height:220px;
+  flex-shrink:0;height:240px;
   background:#070710;border-top:2px solid var(--border);
   display:flex;flex-direction:column;
   position:relative;z-index:10;
 }
 .tl-toolbar{
-  height:32px;display:flex;align-items:center;gap:6px;
+  min-height:32px;height:auto;display:flex;align-items:center;gap:6px;
   padding:0 10px;border-bottom:1px solid var(--border);
-  background:#080812;flex-shrink:0;
+  background:#080812;flex-shrink:0;flex-wrap:wrap;row-gap:4px;padding-top:4px;padding-bottom:4px;
 }
 .tl-addbtn{
   display:flex;align-items:center;gap:4px;position:relative;
