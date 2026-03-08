@@ -425,15 +425,15 @@ textarea{min-height:68px;}
 <!-- 4. OVERLAYS -->
 <div class="panel">
   <div class="ptitle"><span class="badge">4</span> Overlays</div>
-  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('vignette',this)"><span class="ov-icon">🌑</span><span class="ov-name">Vignette</span><div class="ov-tog" id="ovt-vignette"></div></div>
+  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('vignette')"><span class="ov-icon">🌑</span><span class="ov-name">Vignette</span><div class="ov-tog" id="ovt-vignette"></div></div>
     <div class="ov-ctrl" id="ovc-vignette"><div class="ov-row"><lbl>Intensity</lbl><input type="range" min="0" max="100" value="50" oninput="ovSet('vignette','intensity',this.value);document.getElementById('ovv-vignette').textContent=this.value+'%'"><span class="ov-val" id="ovv-vignette">50%</span></div></div></div>
-  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('bars',this)"><span class="ov-icon">🎬</span><span class="ov-name">Cinematic Black Bars</span><div class="ov-tog" id="ovt-bars"></div></div>
+  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('bars')"><span class="ov-icon">🎬</span><span class="ov-name">Cinematic Black Bars</span><div class="ov-tog" id="ovt-bars"></div></div>
     <div class="ov-ctrl" id="ovc-bars"><div class="ov-row"><lbl>Height</lbl><input type="range" min="20" max="180" value="80" oninput="ovSet('bars','height',this.value);document.getElementById('ovv-bars').textContent=this.value+'px'"><span class="ov-val" id="ovv-bars">80px</span></div></div></div>
-  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('grain',this)"><span class="ov-icon">📽</span><span class="ov-name">Film Grain</span><div class="ov-tog" id="ovt-grain"></div></div>
+  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('grain')"><span class="ov-icon">📽</span><span class="ov-name">Film Grain</span><div class="ov-tog" id="ovt-grain"></div></div>
     <div class="ov-ctrl" id="ovc-grain"><div class="ov-row"><lbl>Intensity</lbl><input type="range" min="0" max="100" value="30" oninput="ovSet('grain','intensity',this.value);document.getElementById('ovv-grain').textContent=this.value+'%'"><span class="ov-val" id="ovv-grain">30%</span></div></div></div>
-  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('tint',this)"><span class="ov-icon">🎨</span><span class="ov-name">Color Wash</span><div class="ov-tog" id="ovt-tint"></div></div>
+  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('tint')"><span class="ov-icon">🎨</span><span class="ov-name">Color Wash</span><div class="ov-tog" id="ovt-tint"></div></div>
     <div class="ov-ctrl" id="ovc-tint"><div class="ov-row"><lbl>Color</lbl><input type="color" value="#7b2fff" oninput="ovSet('tint','color',this.value)"><input type="range" min="0" max="80" value="30" oninput="ovSet('tint','opacity',this.value);document.getElementById('ovv-tint').textContent=this.value+'%'" style="flex:1;"><span class="ov-val" id="ovv-tint">30%</span></div></div></div>
-  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('leak',this)"><span class="ov-icon">✨</span><span class="ov-name">Light Leak <small style="font-size:9px;color:var(--muted);">drag on preview</small></span><div class="ov-tog" id="ovt-leak"></div></div>
+  <div class="ov-card"><div class="ov-hdr" onclick="toggleOv('leak')"><span class="ov-icon">✨</span><span class="ov-name">Light Leak <small style="font-size:9px;color:var(--muted);">drag on preview</small></span><div class="ov-tog" id="ovt-leak"></div></div>
     <div class="ov-ctrl" id="ovc-leak">
       <div class="ov-row"><lbl>Color</lbl><input type="color" value="#ff9a3c" oninput="ovSet('leak','color',this.value)"><input type="range" min="10" max="100" value="55" oninput="ovSet('leak','intensity',this.value);document.getElementById('ovv-leak').textContent=this.value+'%'" style="flex:1;"><span class="ov-val" id="ovv-leak">55%</span></div>
       <div class="ov-row"><lbl>Size</lbl><input type="range" min="80" max="600" value="280" oninput="ovSet('leak','size',this.value)"></div>
@@ -1034,7 +1034,7 @@ function updateSelShape(){
 // ════════════════════════════════════════════
 // EMOJIS
 // ════════════════════════════════════════════
-const PRESETS='❤️🔥✨💯😍🙌💪🎉🌟😂👏💫🤩😎🥰🌸🦋🎶💃🏆👑💎🌈🍕☕🌊🏖️🌴🎯💡'.match(/\p{Emoji}/gu)||[];
+const PRESETS=['❤️','🔥','✨','💯','😍','🙌','💪','🎉','🌟','😂','👏','💫','🤩','😎','🥰','🌸','🦋','🎶','💃','🏆','👑','💎','🌈','🍕','☕','🌊','🏖️','🌴','🎯','💡'];
 const egrid=document.getElementById('emoji-grid');
 PRESETS.forEach(em=>{const btn=document.createElement('button');btn.className='emoji-btn';btn.textContent=em;btn.addEventListener('click',()=>placeEmoji(em));egrid.appendChild(btn);});
 document.getElementById('emoji-input').addEventListener('keydown',e=>{if(e.key==='Enter')addEmojiFromInput();});
@@ -1360,7 +1360,6 @@ function drawCaption(ctx){
 async function generateCaptions(){
   const topic=document.getElementById('topic').value.trim();
   if(!topic){document.getElementById('topic').focus();return;}
-  if(!clips.length){alert('Upload a video or images first!');return;}
   const niches=getSelected('niche-chips');const vibe=getSelected('vibe-chips')[0]||'motivational';
   const cta=getSelected('cta-chips')[0]||'Follow for more';
   const numH={none:0,minimal:5,balanced:15,max:30}[getSelected('hashtag-tabs')[0]]??15;
@@ -1390,7 +1389,6 @@ async function generateCaptions(){
 // RENDER VIDEO
 // ════════════════════════════════════════════
 async function renderVideo(){
-  if(!captionData){alert('Generate captions first!');return;}
   if(!clips.length){alert('Upload media first!');return;}
   const sb=document.getElementById('status-bar'),pf=document.getElementById('progress-fill'),st=document.getElementById('status-text'),rb=document.getElementById('render-btn');
   sb.classList.add('on');rb.disabled=true;rb.textContent='RENDERING…';pf.style.width='0%';
