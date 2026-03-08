@@ -1037,12 +1037,22 @@ function cancelCaptionEdit(){
 function togglePlay(){
   if(!videoEl) return;
   isPlaying=!isPlaying;
-  if(isPlaying){ videoEl.play().catch(()=>{}); document.getElementById('play-btn').textContent='⏸ Pause'; }
-  else { videoEl.pause(); document.getElementById('play-btn').textContent='▶ Play'; }
+  if(isPlaying){
+    videoEl.muted=false;
+    // If playhead is outside trim range, reset to trim start
+    if(videoEl.currentTime<vTrimStart||videoEl.currentTime>=vTrimEnd) videoEl.currentTime=vTrimStart;
+    videoEl.play().catch(()=>{});
+    document.getElementById('play-btn').textContent='⏸ Pause';
+  } else {
+    videoEl.pause();
+    document.getElementById('play-btn').textContent='▶ Play';
+  }
 }
 function stopPreview(){
   if(!videoEl) return;
-  videoEl.pause(); videoEl.currentTime=vTrimStart; isPlaying=false;
+  videoEl.pause();
+  videoEl.currentTime=vTrimStart;
+  isPlaying=false;
   document.getElementById('play-btn').textContent='▶ Play';
 }
 
@@ -1064,7 +1074,7 @@ setupDrop('video-drop','video-file',files=>{
   document.getElementById('video-drop').classList.add('has-file');
   if(videoEl){ videoEl.pause(); videoEl.src=''; }
   videoEl=document.createElement('video');
-  videoEl.muted=true; videoEl.loop=false; videoEl.playsInline=true;
+  videoEl.muted=false; videoEl.loop=false; videoEl.playsInline=true;
   videoEl.src=URL.createObjectURL(file);
   videoEl.onloadedmetadata=()=>{
     videoDuration=videoEl.duration;
@@ -1079,7 +1089,12 @@ setupDrop('video-drop','video-file',files=>{
     startPreview();
   };
   videoEl.onerror=()=>document.getElementById('media-info').textContent='⚠ Could not load. Try MP4.';
-  videoEl.addEventListener('timeupdate',()=>{ if(videoEl.currentTime>=vTrimEnd) videoEl.currentTime=vTrimStart; });
+  videoEl.addEventListener('timeupdate',()=>{
+    if(videoEl.currentTime>=vTrimEnd){
+      videoEl.currentTime=vTrimStart;
+      if(!isPlaying) videoEl.pause();
+    }
+  });
 });
 setupDrop('image-drop','image-files',files=>{
   const arr=[...files].filter(f=>f.type.startsWith('image/')); if(!arr.length) return;
