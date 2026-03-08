@@ -781,6 +781,8 @@ function selectClip(id){
 }
 function deselectClip(){
   selectedClipId=null;
+  scrubBuffer=null;scrubClipId=null;clearTimeout(scrubDebounce);
+  if(scrubAudio){scrubAudio.close().catch(()=>{});scrubAudio=null;}
   document.getElementById('clip-editor').style.display='none';
   document.getElementById('trim-panel').classList.remove('on');
   renderSeq();
@@ -838,16 +840,32 @@ function updateTrimUI(){
   if(c&&c.type==='video'){c.trimStart=vTrimStart;c.trimEnd=vTrimEnd;}
   updateSeqInfo();renderSeq();
 }
+// Scrub audio: decode once per clip, cache the buffer, debounce playback
+let scrubBuffer=null,scrubClipId=null,scrubDebounce=null;
 async function scrubTo(t){
   const c=clips.find(x=>x.id===selectedClipId);if(!c||c.type!=='video')return;
-  try{
-    if(scrubAudio){scrubAudio.close().catch(()=>{});scrubAudio=null;}
-    scrubAudio=new(window.AudioContext||window.webkitAudioContext)();
-    const ab=await c.file.arrayBuffer();
-    const buf=await scrubAudio.decodeAudioData(ab);
-    const src=scrubAudio.createBufferSource();src.buffer=buf;src.connect(scrubAudio.destination);
-    src.start(0,Math.max(0,t),.4);
-  }catch(e){}
+  // Seek video element for visual scrub (free, no memory cost)
+  try{c.el.currentTime=Math.max(0,t);}catch(e){}
+  // Debounce audio scrub — only fire 120ms after dragging stops
+  clearTimeout(scrubDebounce);
+  scrubDebounce=setTimeout(async()=>{
+    try{
+      // Decode audio only once per clip; reuse cached buffer
+      if(scrubClipId!==c.id||!scrubBuffer){
+        if(scrubAudio){scrubAudio.close().catch(()=>{});scrubAudio=null;}
+        scrubAudio=new(window.AudioContext||window.webkitAudioContext)();
+        const ab=await c.file.arrayBuffer();
+        scrubBuffer=await scrubAudio.decodeAudioData(ab);
+        scrubClipId=c.id;
+      }
+      if(!scrubAudio||scrubAudio.state==='closed'){
+        scrubAudio=new(window.AudioContext||window.webkitAudioContext)();
+      }
+      const src=scrubAudio.createBufferSource();
+      src.buffer=scrubBuffer;src.connect(scrubAudio.destination);
+      src.start(0,Math.max(0,t),.4);
+    }catch(e){}
+  },120);
 }
 function makeTrimDrag(lId,rId,trackId,getS,setS,getE,setE,scrub){
   let drag=null;
