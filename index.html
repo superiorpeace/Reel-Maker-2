@@ -328,6 +328,25 @@ textarea{min-height:52px;}
 #tl-ph::before{content:'▼';position:absolute;top:-1px;left:-6px;
   color:var(--accent);font-size:9px;pointer-events:none;}
 
+/* ── TOOL MODE BUTTONS ── */
+.tl-tool{background:var(--s2);border:1px solid var(--border);border-radius:5px;
+  padding:3px 8px;font-size:9px;color:var(--muted);cursor:pointer;transition:all .12s;
+  font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.tl-tool:hover{border-color:var(--a2);color:#fff;}
+.tl-tool.active{background:rgba(123,47,255,.2);border-color:var(--a2);color:#fff;}
+.tl-tool.slice-active{background:rgba(255,45,120,.15);border-color:var(--accent);color:var(--accent);}
+
+/* slice cursor line */
+#tl-slice-line{position:absolute;top:0;bottom:0;width:2px;
+  background:var(--accent);z-index:25;pointer-events:none;display:none;}
+#tl-slice-line::before{content:'✂';position:absolute;top:-2px;left:-8px;
+  color:var(--accent);font-size:11px;pointer-events:none;}
+
+/* selection range overlay */
+#tl-sel-range{position:absolute;top:0;bottom:0;
+  background:rgba(123,47,255,.12);border-left:2px solid var(--a2);
+  border-right:2px solid var(--a2);z-index:8;pointer-events:none;display:none;}
+
 /* clip properties popover */
 .cpp{position:fixed;background:#11111e;border:1px solid var(--a2);
   border-radius:9px;padding:11px;z-index:600;width:220px;
@@ -537,11 +556,98 @@ textarea{min-height:52px;}
 
   <!-- RIGHT COL -->
   <div class="right-col">
+
+    <!-- TEXT OVERLAY PANEL -->
+    <div class="pnl">
+      <div class="pt"><span class="bdg">T</span>Text Overlay</div>
+      <lbl>Text Content</lbl>
+      <textarea id="text-input" placeholder="Type your text here…" style="min-height:48px;"></textarea>
+      <div style="display:flex;gap:4px;margin-top:5px;">
+        <button class="ibtn" onclick="addTextLayer()" style="flex:2;background:rgba(123,47,255,.15);border-color:var(--a2);color:#fff;">＋ Add Text</button>
+        <button class="ibtn" onclick="document.getElementById('text-input').value=''" style="flex:1;">✕</button>
+      </div>
+      <lbl>Font</lbl>
+      <div class="chips" id="font-chips">
+        <div class="chip on" data-v="'DM Sans',sans-serif">Sans</div>
+        <div class="chip" data-v="'Bebas Neue',sans-serif">Bebas</div>
+        <div class="chip" data-v="Georgia,serif">Serif</div>
+        <div class="chip" data-v="'Courier New',monospace">Mono</div>
+        <div class="chip" data-v="Impact,sans-serif">Impact</div>
+        <div class="chip" data-v="cursive">Script</div>
+      </div>
+      <lbl>Weight</lbl>
+      <div class="chips" id="weight-chips">
+        <div class="chip" data-v="300">Light</div>
+        <div class="chip" data-v="400">Regular</div>
+        <div class="chip on" data-v="700">Bold</div>
+        <div class="chip" data-v="900">Black</div>
+      </div>
+      <lbl>Align</lbl>
+      <div class="chips" id="align-chips">
+        <div class="chip" data-v="left">◀ Left</div>
+        <div class="chip on" data-v="center">● Center</div>
+        <div class="chip" data-v="right">Right ▶</div>
+      </div>
+      <lbl>Size</lbl>
+      <div class="srow">
+        <span class="lbs">S</span>
+        <input type="range" id="txt-size" min="14" max="120" value="46" oninput="document.getElementById('txt-size-v').textContent=this.value+'px'">
+        <span class="lbs">XL</span><span class="val" id="txt-size-v">46px</span>
+      </div>
+      <lbl>Color</lbl>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+        <input type="color" id="txt-color" value="#ffffff" style="width:28px;height:24px;border:none;background:none;cursor:pointer;padding:0;border-radius:4px;">
+        <div class="chips" id="txt-color-chips" style="flex:1;flex-wrap:wrap;">
+          <div class="chip on" data-v="#ffffff">White</div>
+          <div class="chip" data-v="#ff2d78">Pink</div>
+          <div class="chip" data-v="#ffd060">Gold</div>
+          <div class="chip" data-v="#00cfff">Cyan</div>
+          <div class="chip" data-v="#000000">Black</div>
+        </div>
+      </div>
+      <lbl>Style</lbl>
+      <div class="sgrid" id="txt-style-grid">
+        <div class="scard on" data-v="plain"><div class="prev" style="color:#fff;font-size:10px;font-weight:700;">PLAIN</div><div class="sname">Plain</div></div>
+        <div class="scard" data-v="shadow"><div class="prev" style="color:#fff;font-size:10px;font-weight:700;text-shadow:2px 2px 0 #ff2d78;">SHADOW</div><div class="sname">Shadow</div></div>
+        <div class="scard" data-v="outline"><div class="prev" style="color:#fff;font-size:10px;font-weight:800;-webkit-text-stroke:1px #ff2d78;">STROKE</div><div class="sname">Stroke</div></div>
+        <div class="scard" data-v="box"><div class="prev"><span style="background:rgba(0,0,0,.7);color:#fff;padding:1px 5px;font-size:9px;border-radius:3px;">BOX</span></div><div class="sname">Box</div></div>
+        <div class="scard" data-v="pill"><div class="prev"><span style="background:#ff2d78;color:#fff;border-radius:99px;padding:1px 5px;font-size:8px;">PILL</span></div><div class="sname">Pill</div></div>
+        <div class="scard" data-v="gradient"><div class="prev" style="font-weight:800;font-size:10px;background:linear-gradient(135deg,#ff2d78,#7b2fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GRAD</div><div class="sname">Gradient</div></div>
+      </div>
+    </div>
+
+    <!-- SELECTED LAYER PROPERTIES -->
+    <div class="pnl" id="sel-layer-pnl" style="display:none;">
+      <div class="pt"><span class="bdg" style="background:linear-gradient(135deg,var(--accent),var(--a2));">✦</span>Selected Layer</div>
+      <div id="sel-layer-name" style="font-size:10px;color:var(--text);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+      <div id="sel-vol-wrap">
+        <lbl>🔊 Volume</lbl>
+        <div class="srow">
+          <span class="lbs">0</span>
+          <input type="range" id="prop-vol" min="0" max="100" value="100" oninput="propSetVol(+this.value)">
+          <span class="lbs">100</span><span class="val" id="prop-vol-v">100%</span>
+        </div>
+      </div>
+      <div id="sel-opa-wrap">
+        <lbl>◐ Opacity</lbl>
+        <div class="srow">
+          <span class="lbs">0</span>
+          <input type="range" id="prop-opa" min="0" max="100" value="100" oninput="propSetOpa(+this.value)">
+          <span class="lbs">100</span><span class="val" id="prop-opa-v">100%</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:8px;">
+        <button class="ibtn" onclick="sliceAtPlayhead()" style="flex:1;">✂ Slice at Head</button>
+        <button class="ibtn" onclick="deleteSelectedClip()" style="flex:1;border-color:rgba(255,45,120,.4);color:var(--accent);">🗑 Delete</button>
+      </div>
+    </div>
+
     <!-- Layers -->
     <div class="pnl">
       <div class="pt">Layers</div>
       <div id="layers-list"><div style="font-size:9px;color:var(--muted);text-align:center;padding:4px;">Add elements to see layers</div></div>
     </div>
+
     <!-- Output -->
     <div class="pnl">
       <div class="ldots" id="loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>Generating…</span></div>
@@ -574,6 +680,12 @@ textarea{min-height:52px;}
     <label class="tl-addbtn">🖼 Image<input type="file" accept="image/*" multiple onchange="tlAdd([...this.files],'image');this.value=''"></label>
     <label class="tl-addbtn">🎵 Audio<input type="file" accept="audio/*" multiple onchange="tlAdd([...this.files],'audio');this.value=''"></label>
     <div class="tl-sep"></div>
+    <button class="tl-tool active" id="tool-select" onclick="setTool('select')" title="Select & Move (V)">↖ Select</button>
+    <button class="tl-tool" id="tool-slice" onclick="setTool('slice')" title="Slice / Razor (C)">✂ Slice</button>
+    <button class="tl-tool" id="tool-range" onclick="setTool('range')" title="Select Range (R)">⬌ Range</button>
+    <div class="tl-sep"></div>
+    <button id="tl-del-range" onclick="deleteSelectedRange()" title="Delete clips/parts in selected range"
+      style="display:none;background:rgba(255,45,120,.15);border:1px solid var(--accent);border-radius:5px;padding:3px 8px;font-size:9px;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Delete Range</button>
     <span class="tl-totaldur" id="tl-dur">0.0s total</span>
     <div class="tl-zoom">
       <span>Zoom</span>
@@ -592,6 +704,8 @@ textarea{min-height:52px;}
         <input type="range" id="tl-opa-sl" min="0" max="100" value="100" style="-webkit-appearance:none;width:60px;height:2px;background:rgba(255,255,255,.15);border-radius:1px;cursor:pointer;" oninput="selSetOpa(+this.value)">
         <span id="tl-opa-v" style="font-size:8px;color:var(--a2);min-width:24px;">100%</span>
       </div>
+      <button onclick="deleteSelectedClip()" title="Delete selected clip (Del)" style="background:rgba(255,45,120,.15);border:1px solid var(--accent);border-radius:4px;color:var(--accent);cursor:pointer;font-size:9px;padding:2px 6px;font-family:'DM Sans',sans-serif;">🗑 Del</button>
+      <button onclick="sliceAtPlayhead()" title="Slice selected clip at playhead" style="background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.3);border-radius:4px;color:var(--accent);cursor:pointer;font-size:9px;padding:2px 6px;font-family:'DM Sans',sans-serif;">✂ Slice</button>
       <button onclick="selectedId=null;buildTimeline();hideSelBar()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>
     </div>
   </div>
@@ -599,6 +713,8 @@ textarea{min-height:52px;}
     <div class="tl-inner" id="tl-inner">
       <div class="tl-ruler" id="tl-ruler"></div>
       <div class="tl-tracks" id="tl-tracks"></div>
+      <div id="tl-sel-range"></div>
+      <div id="tl-slice-line"></div>
       <div id="tl-ph"></div>
     </div>
   </div>
@@ -640,6 +756,13 @@ let cppId=null;
 let isPlaying=false, playT=0, playTs=null;
 let previewRaf=null;
 let pxPerSec=80;
+
+// tool mode: 'select' | 'slice' | 'range'
+let toolMode='select';
+let rangeStart=null, rangeEnd=null, rangeDragging=false;
+
+// text layers
+let textLayers=[];
 
 // overlay / shape / emoji / pip state
 let pips=[],selPip=null,pipResize=null;
@@ -790,9 +913,11 @@ function showSelBar(c){
   // hide opacity for audio (no visual)
   document.getElementById('tl-opa-sl').parentElement.style.display=
     c.type==='audio'?'none':'flex';
+  showPropPanel(c);
 }
 function hideSelBar(){
   document.getElementById('tl-sel-bar').style.display='none';
+  hidePropPanel();
 }
 function selSetVol(v){
   const c=clips.find(x=>x.id===selectedId); if(!c)return;
@@ -819,6 +944,324 @@ function selectClip(id){
   if(c) showSelBar(c);
   buildTimeline();
 }
+
+// ════════════════════════════════════════
+// TOOL MODE
+// ════════════════════════════════════════
+function setTool(mode){
+  toolMode=mode;
+  document.getElementById('tool-select').className='tl-tool'+(mode==='select'?' active':'');
+  document.getElementById('tool-slice').className='tl-tool'+(mode==='slice'?' slice-active':'');
+  document.getElementById('tool-range').className='tl-tool'+(mode==='range'?' active':'');
+  const scroll=document.getElementById('tl-scroll');
+  scroll.style.cursor=mode==='slice'?'crosshair':mode==='range'?'text':'default';
+  if(mode!=='range'){rangeStart=null;rangeEnd=null;updateRangeOverlay();}
+}
+
+// keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='v'||e.key==='V')setTool('select');
+  if(e.key==='c'||e.key==='C')setTool('slice');
+  if(e.key==='r'||e.key==='R')setTool('range');
+  if((e.key==='Delete'||e.key==='Backspace')&&selectedId){e.preventDefault();deleteSelectedClip();}
+  if(e.key==' '||e.key==='Space'){e.preventDefault();togglePlay();}
+});
+
+// ════════════════════════════════════════
+// SLICE TOOL
+// ════════════════════════════════════════
+function sliceClipAt(clipId, tSec){
+  const c=clips.find(x=>x.id===clipId); if(!c||c._sentinel)return;
+  const localT=tSec-c.start;
+  const cd=c.trimE-c.trimS;
+  if(localT<=0.05||localT>=cd-0.05)return; // too close to edge
+  // left half keeps original, right half is a new clip
+  const newClip={...c,id:genId(),
+    start:c.start+localT,
+    trimS:c.trimS+localT,
+    trimE:c.trimE
+  };
+  c.trimE=c.trimS+localT; // shorten original
+  clips.push(newClip);
+  buildTimeline();
+}
+
+function sliceAtPlayhead(){
+  if(!selectedId){
+    // slice ALL clips at playhead
+    const toSlice=clips.filter(c=>!c._sentinel&&c.loaded!==false).filter(c=>{
+      const local=playT-c.start; const cd=c.trimE-c.trimS;
+      return local>0.05&&local<cd-0.05;
+    });
+    toSlice.forEach(c=>sliceClipAt(c.id,playT));
+  } else {
+    sliceClipAt(selectedId,playT);
+  }
+}
+
+function sliceAllAtTime(tSec){
+  const toSlice=clips.filter(c=>!c._sentinel&&c.loaded!==false).filter(c=>{
+    const local=tSec-c.start; const cd=c.trimE-c.trimS;
+    return local>0.05&&local<cd-0.05;
+  });
+  toSlice.forEach(c=>sliceClipAt(c.id,tSec));
+}
+
+// ════════════════════════════════════════
+// DELETE SELECTED CLIP
+// ════════════════════════════════════════
+function deleteSelectedClip(){
+  if(!selectedId)return;
+  removeClip(selectedId);
+  selectedId=null;
+  hideSelBar();
+  hidePropPanel();
+}
+
+// ════════════════════════════════════════
+// RANGE SELECT + DELETE RANGE
+// ════════════════════════════════════════
+function updateRangeOverlay(){
+  const el=document.getElementById('tl-sel-range');
+  const delBtn=document.getElementById('tl-del-range');
+  if(rangeStart===null||rangeEnd===null||toolMode!=='range'){
+    el.style.display='none'; delBtn.style.display='none'; return;
+  }
+  const labelW=68;
+  const rs=Math.min(rangeStart,rangeEnd);
+  const re=Math.max(rangeStart,rangeEnd);
+  const x=labelW+rs*pxPerSec;
+  const w=(re-rs)*pxPerSec;
+  el.style.display='block';
+  el.style.left=x+'px';
+  el.style.width=Math.max(2,w)+'px';
+  delBtn.style.display='flex';
+}
+
+function deleteSelectedRange(){
+  if(rangeStart===null||rangeEnd===null)return;
+  const rs=Math.min(rangeStart,rangeEnd);
+  const re=Math.max(rangeStart,rangeEnd);
+  if(re-rs<0.05)return;
+
+  const toProcess=clips.filter(c=>!c._sentinel&&c.loaded!==false);
+  toProcess.forEach(c=>{
+    const cStart=c.start;
+    const cEnd=c.start+(c.trimE-c.trimS);
+    // fully inside range → remove
+    if(cStart>=rs&&cEnd<=re){removeClip(c.id);return;}
+    // overlaps left edge (clip starts before range but ends inside)
+    if(cStart<rs&&cEnd>rs&&cEnd<=re){
+      c.trimE=c.trimS+(rs-cStart); buildTimeline(); return;
+    }
+    // overlaps right edge (clip starts inside range, ends after)
+    if(cStart>=rs&&cStart<re&&cEnd>re){
+      const trimmed=re-cStart;
+      c.trimS+=trimmed; c.start=re; buildTimeline(); return;
+    }
+    // range is entirely inside clip → split
+    if(cStart<rs&&cEnd>re){
+      sliceClipAt(c.id,re);
+      sliceClipAt(c.id,rs);
+      // now remove the middle piece
+      const mid=clips.find(x=>x.id!==c.id&&x.start>=rs&&x.start+(x.trimE-x.trimS)<=re+0.01&&!x._sentinel&&x.type===c.type);
+      if(mid)removeClip(mid.id);
+    }
+  });
+  rangeStart=null; rangeEnd=null;
+  updateRangeOverlay();
+  buildTimeline();
+}
+
+// ════════════════════════════════════════
+// LAYER PROPERTIES PANEL (right col)
+// ════════════════════════════════════════
+function showPropPanel(c){
+  const pnl=document.getElementById('sel-layer-pnl');
+  pnl.style.display='block';
+  document.getElementById('sel-layer-name').textContent=
+    (c.type==='video'?'🎬':c.type==='image'?'🖼':'🎵')+' '+(c.file?c.file.name.slice(0,22):c.type);
+  document.getElementById('prop-vol').value=c.volume;
+  document.getElementById('prop-vol-v').textContent=c.volume+'%';
+  document.getElementById('prop-opa').value=c.opacity;
+  document.getElementById('prop-opa-v').textContent=c.opacity+'%';
+  document.getElementById('sel-opa-wrap').style.display=c.type==='audio'?'none':'block';
+}
+function hidePropPanel(){
+  document.getElementById('sel-layer-pnl').style.display='none';
+}
+function propSetVol(v){
+  const c=clips.find(x=>x.id===selectedId); if(!c)return;
+  c.volume=v; document.getElementById('prop-vol-v').textContent=v+'%';
+  document.getElementById('tl-vol-sl').value=v;
+  document.getElementById('tl-vol-v').textContent=v+'%';
+  if(c.el&&'volume' in c.el) c.el.volume=clamp(v/100,0,1);
+  buildTimeline();
+}
+function propSetOpa(v){
+  const c=clips.find(x=>x.id===selectedId); if(!c)return;
+  c.opacity=v; document.getElementById('prop-opa-v').textContent=v+'%';
+  document.getElementById('tl-opa-sl').value=v;
+  document.getElementById('tl-opa-v').textContent=v+'%';
+  const el=document.querySelector(`.tl-clip[data-id="${c.id}"]`);
+  if(el) el.style.opacity=v/100;
+}
+
+// ════════════════════════════════════════
+// TEXT LAYERS
+// ════════════════════════════════════════
+function getOneChip(groupId){
+  const on=document.querySelector(`#${groupId} .chip.on, #${groupId} .scard.on`);
+  return on?on.dataset.v:null;
+}
+function addTextLayer(){
+  const txt=document.getElementById('text-input').value.trim();
+  if(!txt)return;
+  const layer={
+    id:genId(),
+    text:txt,
+    x:W/2, y:H*0.42,
+    fontSize:parseInt(document.getElementById('txt-size').value)||46,
+    font:getOneChip('font-chips')||"'DM Sans',sans-serif",
+    weight:getOneChip('weight-chips')||'700',
+    align:getOneChip('align-chips')||'center',
+    color:document.getElementById('txt-color').value||'#ffffff',
+    style:getOneChip('txt-style-grid')||'plain',
+    visible:true, locked:false
+  };
+  textLayers.push(layer);
+  document.getElementById('text-input').value='';
+  refreshLayers();
+}
+function drawTextLayer(ctx,tl){
+  if(!tl.visible||!tl.text)return;
+  const fs=tl.fontSize||46, lh=fs*1.25;
+  const x=tl.x, y=tl.y;
+  ctx.save();
+  ctx.font=`${tl.weight||700} ${fs}px ${tl.font||"'DM Sans',sans-serif"}`;
+  ctx.textAlign=tl.align||'center';
+  ctx.textBaseline='middle';
+  const maxW=W-60;
+  // helper to get wrapped lines
+  function getLines(txt){
+    const words=String(txt).split(' '); let line='',lines=[];
+    for(const w of words){const t=line+w+' ';if(ctx.measureText(t).width>maxW&&line){lines.push(line.trim());line=w+' ';}else line=t;}
+    if(line.trim())lines.push(line.trim()); return lines;
+  }
+  const lines=getLines(tl.text);
+  const totalH=lines.length*lh;
+  const ax=tl.align==='left'?30:tl.align==='right'?W-30:x;
+
+  if(tl.style==='box'){
+    const pad=10;
+    const lineW=Math.max(...lines.map(l=>ctx.measureText(l).width));
+    const bx=(tl.align==='center'?x-lineW/2:tl.align==='left'?30:W-30-lineW)-pad;
+    ctx.fillStyle='rgba(0,0,0,.7)';
+    if(ctx.roundRect)ctx.roundRect(bx,y-totalH/2-pad,lineW+pad*2,totalH+pad*2,6);
+    else ctx.rect(bx,y-totalH/2-pad,lineW+pad*2,totalH+pad*2);
+    ctx.fill();
+  }
+  if(tl.style==='pill'){
+    const lineW=Math.max(...lines.map(l=>ctx.measureText(l).width));
+    const ph=fs*1.1, pw=lineW+fs;
+    const px=ax-(tl.align==='center'?pw/2:0);
+    ctx.fillStyle=tl.color;
+    ctx.shadowBlur=16; ctx.shadowColor=tl.color+'88';
+    if(ctx.roundRect)ctx.roundRect(px,y-totalH/2-4,pw,ph,ph/2);
+    else ctx.rect(px,y-totalH/2-4,pw,ph);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#fff';
+    lines.forEach((l,i)=>ctx.fillText(l,ax,y-totalH/2+lh/2+i*lh));
+    ctx.restore(); return;
+  }
+
+  lines.forEach((l,i)=>{
+    const ty=y-totalH/2+lh/2+i*lh;
+    if(tl.style==='shadow'){
+      ctx.fillStyle=tl.color==='#000000'?'rgba(255,255,255,.4)':'rgba(0,0,0,.5)';
+      ctx.fillText(l,ax+3,ty+3);
+    }
+    if(tl.style==='outline'){
+      ctx.strokeStyle=tl.color; ctx.lineWidth=3;
+      ctx.strokeText(l,ax,ty);
+      ctx.fillStyle='#fff'; ctx.fillText(l,ax,ty);
+    } else if(tl.style==='gradient'){
+      const grd=ctx.createLinearGradient(ax-200,0,ax+200,0);
+      grd.addColorStop(0,tl.color); grd.addColorStop(1,'#7b2fff');
+      ctx.fillStyle=grd; ctx.shadowBlur=8; ctx.fillText(l,ax,ty);
+    } else {
+      ctx.fillStyle=tl.color;
+      if(tl.style==='shadow')ctx.shadowColor='rgba(0,0,0,.8)',ctx.shadowBlur=10;
+      ctx.fillText(l,ax,ty);
+    }
+  });
+  ctx.restore();
+  // selection dashes when not locked
+  if(!tl.locked){
+    ctx.save();ctx.strokeStyle='rgba(123,47,255,.5)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.strokeRect(x-W/2+10,y-totalH/2-8,W-20,totalH+16);ctx.restore();
+  }
+}
+
+// wire chip groups for text panel
+document.addEventListener('DOMContentLoaded',()=>{
+  ['font-chips','weight-chips','align-chips','txt-color-chips','txt-style-grid'].forEach(gid=>{
+    document.getElementById(gid)?.addEventListener('click',e=>{
+      const chip=e.target.closest('[data-v]'); if(!chip)return;
+      document.querySelectorAll(`#${gid} .chip.on, #${gid} .scard.on`).forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      if(gid==='txt-color-chips') document.getElementById('txt-color').value=chip.dataset.v;
+    });
+  });
+  document.getElementById('txt-color')?.addEventListener('input',function(){
+    document.querySelectorAll('#txt-color-chips .chip.on').forEach(c=>c.classList.remove('on'));
+  });
+});
+
+// Timeline mouse for slice + range tools
+(function(){
+  const scroll=document.getElementById('tl-scroll');
+  const labelW=68;
+  let rangeMouseDown=false;
+
+  scroll.addEventListener('mousemove',e=>{
+    if(toolMode==='slice'){
+      const line=document.getElementById('tl-slice-line');
+      const rect=scroll.getBoundingClientRect();
+      const x=e.clientX-rect.left+scroll.scrollLeft;
+      line.style.display='block';
+      line.style.left=x+'px';
+    } else {
+      document.getElementById('tl-slice-line').style.display='none';
+    }
+    if(toolMode==='range'&&rangeMouseDown){
+      const rect=scroll.getBoundingClientRect();
+      const x=e.clientX-rect.left+scroll.scrollLeft;
+      rangeEnd=Math.max(0,(x-labelW)/pxPerSec);
+      updateRangeOverlay();
+    }
+  });
+  scroll.addEventListener('mouseleave',()=>{
+    document.getElementById('tl-slice-line').style.display='none';
+  });
+  scroll.addEventListener('mousedown',e=>{
+    if(e.target.closest('.tl-clip,.tl-label,.rl,.rr,.cdel'))return;
+    const rect=scroll.getBoundingClientRect();
+    const x=e.clientX-rect.left+scroll.scrollLeft;
+    const tSec=Math.max(0,(x-labelW)/pxPerSec);
+    if(toolMode==='slice'){
+      sliceAllAtTime(tSec);
+    } else if(toolMode==='range'){
+      rangeStart=tSec; rangeEnd=tSec;
+      rangeMouseDown=true; updateRangeOverlay();
+    }
+  });
+  document.addEventListener('mouseup',()=>{
+    if(rangeMouseDown){rangeMouseDown=false; updateRangeOverlay();}
+  });
+})();
 
 // ════════════════════════════════════════
 // TIMELINE BUILD
@@ -1398,6 +1841,7 @@ function startPreview(){
       if(id==='caption')drawCaption(ctx);
       else if(id==='leak')drawLeak(ctx);
       else{
+        const tl=textLayers.find(x=>x.id===id);if(tl){drawTextLayer(ctx,tl);return;}
         const s=shapes.find(x=>x.id===id);if(s)drawShape(ctx,s,true);
         const em=emojis.find(x=>x.id===id);if(em)drawEmoji(ctx,em);
       }
@@ -1591,11 +2035,12 @@ function placeEmoji(em){emojis.push({id:genId(),emoji:em,x:W/2,y:H/2,size:parseI
 // ════════════════════════════════════════
 // LAYERS PANEL
 // ════════════════════════════════════════
-function getAllIds(){const ids=[];if(captionLayer.text)ids.push('caption');shapes.forEach(s=>ids.push(s.id));emojis.forEach(e=>ids.push(e.id));pips.forEach(p=>ids.push(p.id));if(ov.leak.on)ids.push('leak');return ids;}
+function getAllIds(){const ids=[];if(captionLayer.text)ids.push('caption');textLayers.forEach(t=>ids.push(t.id));shapes.forEach(s=>ids.push(s.id));emojis.forEach(e=>ids.push(e.id));pips.forEach(p=>ids.push(p.id));if(ov.leak.on)ids.push('leak');return ids;}
 function syncLayerOrder(){const all=getAllIds();layerOrder=layerOrder.filter(id=>all.includes(id));all.forEach(id=>{if(!layerOrder.includes(id))layerOrder.push(id);});}
 function getMeta(id){
   if(id==='caption')return{ico:'💬',name:'Caption',vis:captionLayer.visible,lock:captionLayer.locked};
   if(id==='leak')return{ico:'✨',name:'Light Leak',vis:true,lock:false};
+  const tl=textLayers.find(x=>x.id===id);if(tl)return{ico:'T',name:tl.text.slice(0,14)+'…',vis:tl.visible,lock:tl.locked};
   const s=shapes.find(x=>x.id===id);if(s)return{ico:s.type==='rect'?'▭':'◯',name:s.type,vis:s.visible,lock:s.locked};
   const e=emojis.find(x=>x.id===id);if(e)return{ico:e.emoji,name:'Emoji',vis:e.visible,lock:e.locked};
   const p=pips.find(x=>x.id===id);if(p)return{ico:'🖼',name:'Overlay',vis:p.visible,lock:p.locked};
@@ -1615,9 +2060,41 @@ function refreshLayers(){
     list.appendChild(row);
   });
 }
-function tlVis(id){if(id==='caption')captionLayer.visible=!captionLayer.visible;else if(id==='leak'){ov.leak.on=false;document.getElementById('ovt-leak').classList.remove('on');document.getElementById('ovcb-leak').classList.remove('on');}else{const s=shapes.find(x=>x.id===id);if(s)s.visible=!s.visible;const e=emojis.find(x=>x.id===id);if(e)e.visible=!e.visible;const p=pips.find(x=>x.id===id);if(p)p.visible=!p.visible;}refreshLayers();}
-function tlLock(id){if(id==='caption')captionLayer.locked=!captionLayer.locked;else{const s=shapes.find(x=>x.id===id);if(s)s.locked=!s.locked;const e=emojis.find(x=>x.id===id);if(e)e.locked=!e.locked;const p=pips.find(x=>x.id===id);if(p)p.locked=!p.locked;}refreshLayers();}
-function tlDel(id){if(id==='caption'){captionLayer.text='';captionData=null;}else if(id==='leak'){ov.leak.on=false;document.getElementById('ovt-leak').classList.remove('on');document.getElementById('ovcb-leak').classList.remove('on');}else{shapes=shapes.filter(x=>x.id!==id);emojis=emojis.filter(x=>x.id!==id);pips=pips.filter(x=>x.id!==id);if(selShape===id){selShape=null;document.getElementById('shprops').classList.remove('on');}if(selPip===id)selPip=null;}layerOrder=layerOrder.filter(x=>x!==id);renderPipList();refreshLayers();}
+function tlVis(id){
+  if(id==='caption')captionLayer.visible=!captionLayer.visible;
+  else if(id==='leak'){ov.leak.on=false;document.getElementById('ovt-leak').classList.remove('on');document.getElementById('ovcb-leak').classList.remove('on');}
+  else{
+    const tl=textLayers.find(x=>x.id===id);if(tl){tl.visible=!tl.visible;refreshLayers();return;}
+    const s=shapes.find(x=>x.id===id);if(s)s.visible=!s.visible;
+    const e=emojis.find(x=>x.id===id);if(e)e.visible=!e.visible;
+    const p=pips.find(x=>x.id===id);if(p)p.visible=!p.visible;
+  }
+  refreshLayers();
+}
+function tlLock(id){
+  if(id==='caption')captionLayer.locked=!captionLayer.locked;
+  else{
+    const tl=textLayers.find(x=>x.id===id);if(tl){tl.locked=!tl.locked;refreshLayers();return;}
+    const s=shapes.find(x=>x.id===id);if(s)s.locked=!s.locked;
+    const e=emojis.find(x=>x.id===id);if(e)e.locked=!e.locked;
+    const p=pips.find(x=>x.id===id);if(p)p.locked=!p.locked;
+  }
+  refreshLayers();
+}
+function tlDel(id){
+  if(id==='caption'){captionLayer.text='';captionData=null;}
+  else if(id==='leak'){ov.leak.on=false;document.getElementById('ovt-leak').classList.remove('on');document.getElementById('ovcb-leak').classList.remove('on');}
+  else{
+    textLayers=textLayers.filter(x=>x.id!==id);
+    shapes=shapes.filter(x=>x.id!==id);
+    emojis=emojis.filter(x=>x.id!==id);
+    pips=pips.filter(x=>x.id!==id);
+    if(selShape===id){selShape=null;document.getElementById('shprops').classList.remove('on');}
+    if(selPip===id)selPip=null;
+  }
+  layerOrder=layerOrder.filter(x=>x!==id);
+  renderPipList();refreshLayers();
+}
 
 // ════════════════════════════════════════
 // GENERATE CAPTIONS
@@ -1716,7 +2193,7 @@ async function renderVideo(){
         if(ov.bars.on){rctx.fillStyle='#000';rctx.fillRect(0,0,W,ov.bars.height);rctx.fillRect(0,H-ov.bars.height,W,ov.bars.height);}
         if(ov.grain.on){const gc=rGrain.getContext('2d');const gi=gc.createImageData(W,H);for(let i=0;i<gi.data.length;i+=4){const v=Math.random()*255|0;gi.data[i]=gi.data[i+1]=gi.data[i+2]=v;gi.data[i+3]=Math.random()*70|0;}gc.putImageData(gi,0,0);rctx.save();rctx.globalAlpha=ov.grain.intensity/200;rctx.drawImage(rGrain,0,0);rctx.restore();}
         if(ov.tint.on){rctx.save();rctx.globalAlpha=ov.tint.opacity/100;rctx.fillStyle=ov.tint.color;rctx.fillRect(0,0,W,H);rctx.restore();}
-        syncLayerOrder();layerOrder.forEach(id=>{if(id==='caption')drawCaption(rctx);else if(id==='leak')drawLeak(rctx);else{const s=shapes.find(x=>x.id===id);if(s)drawShape(rctx,s,false);const e=emojis.find(x=>x.id===id);if(e)drawEmoji(rctx,e);}});
+        syncLayerOrder();layerOrder.forEach(id=>{if(id==='caption')drawCaption(rctx);else if(id==='leak')drawLeak(rctx);else{const tl=textLayers.find(x=>x.id===id);if(tl){drawTextLayer(rctx,tl);return;}const s=shapes.find(x=>x.id===id);if(s)drawShape(rctx,s,false);const e=emojis.find(x=>x.id===id);if(e)drawEmoji(rctx,e);}});
         pf.style.width=Math.round((frame/totalFrames)*100)+'%';
         st.textContent=`Rendering… ${Math.round((frame/totalFrames)*100)}% · ${Math.ceil((totalFrames-frame)/FPS)}s left`;
         frame++; rf();
