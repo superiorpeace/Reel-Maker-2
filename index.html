@@ -20,8 +20,8 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:500px;height:
   background:linear-gradient(135deg,#fff 30%,var(--accent) 70%,var(--accent2));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .header p{color:var(--muted);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;margin-top:8px;}
-.container{display:grid;grid-template-columns:1fr 420px;gap:22px;width:100%;max-width:1100px;position:relative;z-index:1;}
-@media(max-width:820px){.container{grid-template-columns:1fr;}}
+.container{display:grid;grid-template-columns:1fr 440px;gap:22px;width:100%;max-width:1120px;position:relative;z-index:1;}
+@media(max-width:860px){.container{grid-template-columns:1fr;}}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;}
 .panel-title{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:3px;color:var(--muted);
   text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
@@ -33,7 +33,6 @@ textarea,input[type=text]{width:100%;background:var(--surface2);border:1px solid
   padding:11px 13px;outline:none;transition:border-color .2s;resize:none;}
 textarea:focus,input[type=text]:focus{border-color:var(--accent2);}
 textarea{min-height:80px;}
-
 /* Upload */
 .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .drop-zone{position:relative;background:var(--surface2);border:2px dashed rgba(255,255,255,.12);
@@ -49,14 +48,14 @@ textarea{min-height:80px;}
   border:1px solid rgba(255,255,255,.15);cursor:pointer;transition:opacity .15s;}
 #media-thumbs img:hover{opacity:.6;}
 .media-info{font-size:11px;color:var(--green);margin-top:6px;min-height:16px;}
-
-/* Trim panel */
+/* Trim */
 .trim-panel{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:14px;display:none;}
 .trim-panel.visible{display:block;}
 .trim-row{margin-bottom:16px;}
 .trim-row:last-child{margin-bottom:0;}
-.trim-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.trim-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
 .trim-title b{color:var(--accent);}
+.scrub-hint{font-size:9px;color:var(--muted);opacity:.6;}
 .trim-track{position:relative;height:44px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:8px;user-select:none;}
 .trim-bars{position:absolute;inset:0;display:flex;align-items:center;gap:1px;padding:6px 4px;border-radius:8px;overflow:hidden;pointer-events:none;}
 .trim-bars span{flex:1;border-radius:1px;min-height:3px;}
@@ -75,7 +74,6 @@ textarea{min-height:80px;}
 .v-badge{background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);color:#a78bfa;}
 .a-badge{background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.2);color:#ff6fa8;}
 .t-dur{font-size:10px;color:var(--muted);}
-
 /* Chips */
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
 .chip{background:var(--surface2);border:1px solid var(--border);border-radius:999px;
@@ -96,12 +94,43 @@ textarea{min-height:80px;}
 .style-card.active{border-color:var(--accent);background:rgba(255,45,120,.1);}
 .style-card .prev{font-size:14px;margin-bottom:3px;}
 .style-card .sname{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
-.pos-btns{display:flex;gap:6px;margin-top:4px;}
-.pos-btn{flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  font-size:11px;color:var(--muted);cursor:pointer;text-align:center;letter-spacing:1px;
-  text-transform:uppercase;user-select:none;transition:all .15s;}
-.pos-btn:hover{border-color:var(--accent2);color:#fff;}
-.pos-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(255,45,120,.1);}
+/* Caption position slider */
+.caption-slider-wrap{margin-top:8px;}
+.caption-slider-row{display:flex;align-items:center;gap:10px;}
+.caption-slider-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;outline:none;cursor:pointer;}
+.caption-slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+  border-radius:50%;background:#fff;border:2px solid var(--accent);cursor:pointer;box-shadow:0 0 0 3px rgba(255,45,120,.2);}
+.caption-pos-label{font-size:11px;color:var(--accent);min-width:32px;text-align:right;}
+/* Emoji panel */
+.emoji-panel{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:0;}
+.emoji-input-row{display:flex;gap:8px;margin-bottom:10px;}
+.emoji-input-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:18px;padding:6px 10px;outline:none;}
+.emoji-input-row input:focus{border-color:var(--accent2);}
+.emoji-add-btn{background:var(--accent);border:none;border-radius:8px;color:#fff;padding:6px 14px;
+  cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.emoji-add-btn:hover{background:#e0205e;}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;}
+.emoji-grid::-webkit-scrollbar{width:4px;}
+.emoji-grid::-webkit-scrollbar-track{background:transparent;}
+.emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.emoji-btn{width:34px;height:34px;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;user-select:none;}
+.emoji-btn:hover{border-color:var(--accent2);background:rgba(123,47,255,.1);transform:scale(1.15);}
+.emoji-size-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.emoji-size-row span{font-size:11px;color:var(--muted);white-space:nowrap;}
+.emoji-size-row input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;
+  background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:2px;outline:none;cursor:pointer;}
+.emoji-size-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;
+  border-radius:50%;background:#fff;border:2px solid var(--accent2);cursor:pointer;}
+.placed-emojis-list{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+.placed-tag{background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  padding:3px 8px;font-size:13px;display:flex;align-items:center;gap:5px;cursor:pointer;}
+.placed-tag:hover{border-color:var(--accent);}
+.placed-tag .del{color:var(--muted);font-size:10px;}
+/* Buttons */
 .btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;
   font-size:17px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-top:18px;}
 .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
@@ -110,7 +139,6 @@ textarea{min-height:80px;}
 .btn-green{background:linear-gradient(135deg,var(--green),#00a86b);color:#fff;}
 .btn-green:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,201,124,.35);}
 .btn-green:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
-
 /* Right col */
 .right-col{display:flex;flex-direction:column;gap:16px;}
 .preview-panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;
@@ -118,11 +146,12 @@ textarea{min-height:80px;}
 .preview-ptitle{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:3px;color:var(--muted);
   text-transform:uppercase;align-self:flex-start;display:flex;align-items:center;gap:8px;width:100%;}
 .preview-ptitle::after{content:'';flex:1;height:1px;background:var(--border);}
+.preview-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:-4px;}
 .phone-wrap{background:#0d0d18;border:2px solid rgba(255,255,255,.1);border-radius:28px;padding:8px;
   box-shadow:0 24px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08);position:relative;}
 .phone-notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);
   width:50px;height:6px;background:#1a1a28;border-radius:999px;z-index:10;}
-#previewCanvas{display:block;border-radius:18px;width:200px;height:356px;}
+#previewCanvas{display:block;border-radius:18px;width:216px;height:384px;cursor:crosshair;}
 .status-bar{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:none;}
 .status-bar.visible{display:block;}
 .progress-track{background:rgba(255,255,255,.06);border-radius:999px;height:5px;overflow:hidden;}
@@ -140,19 +169,14 @@ textarea{min-height:80px;}
   color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;
   transition:all .15s;font-family:'DM Sans',sans-serif;text-align:center;}
 .icon-btn:hover{border-color:var(--accent2);color:#fff;}
-
-/* WebM notice */
 .webm-notice{background:rgba(255,208,96,.07);border:1px solid rgba(255,208,96,.2);
   border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.8;display:none;}
 .webm-notice.visible{display:block;}
 .webm-notice strong{color:var(--gold);display:block;margin-bottom:4px;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
-.webm-notice a{color:#8ec4ff;text-decoration:none;border-bottom:1px solid rgba(142,196,255,.3);padding-bottom:1px;}
-.webm-notice a:hover{color:#fff;border-color:#fff;}
 .converter-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
 .conv-link{background:rgba(142,196,255,.08);border:1px solid rgba(142,196,255,.2);color:#8ec4ff;
   border-radius:6px;padding:5px 12px;font-size:11px;text-decoration:none;transition:all .15s;}
-.conv-link:hover{background:rgba(142,196,255,.15);color:#fff;border-color:rgba(142,196,255,.4);}
-
+.conv-link:hover{background:rgba(142,196,255,.15);color:#fff;}
 .loading{display:none;align-items:center;justify-content:center;gap:10px;padding:14px;color:var(--muted);font-size:13px;}
 .loading.active{display:flex;}
 .dots{display:flex;gap:5px;}
@@ -171,10 +195,10 @@ textarea{min-height:80px;}
 </div>
 <div class="container">
 
-  <!-- LEFT COLUMN -->
+  <!-- LEFT -->
   <div style="display:flex;flex-direction:column;gap:18px;">
 
-    <!-- STEP 1: Upload -->
+    <!-- Step 1: Upload -->
     <div class="panel">
       <div class="panel-title"><span class="step-badge">1</span> Upload Media</div>
       <div class="upload-grid">
@@ -199,12 +223,9 @@ textarea{min-height:80px;}
       </div>
       <div id="media-thumbs"></div>
       <div class="media-info" id="media-info"></div>
-
-      <!-- Trim Panel (video only) -->
       <div class="trim-panel" id="trim-panel">
-        <!-- Video trim -->
         <div class="trim-row">
-          <div class="trim-title">✂ <b>Video Trim</b></div>
+          <div class="trim-title"><span>✂ <b>Video Trim</b></span><span class="scrub-hint">Drag to scrub audio</span></div>
           <div class="trim-track" id="vtrack">
             <div class="trim-bars v-bars" id="vbars"></div>
             <div class="trim-sel v-sel" id="vsel"></div>
@@ -217,9 +238,8 @@ textarea{min-height:80px;}
             <span class="t-badge v-badge" id="vel">End: 0.0s</span>
           </div>
         </div>
-        <!-- Audio trim -->
         <div class="trim-row" style="margin-top:14px;">
-          <div class="trim-title">🎵 <b>Audio Trim</b></div>
+          <div class="trim-title"><span>🎵 <b>Audio Trim</b></span><span class="scrub-hint">Drag to scrub audio</span></div>
           <div class="trim-track" id="atrack">
             <div class="trim-bars a-bars" id="abars"></div>
             <div class="trim-sel a-sel" id="asel"></div>
@@ -235,7 +255,7 @@ textarea{min-height:80px;}
       </div>
     </div>
 
-    <!-- STEP 2: Brief -->
+    <!-- Step 2: Brief -->
     <div class="panel">
       <div class="panel-title"><span class="step-badge">2</span> Caption Brief</div>
       <label>What's your reel about?</label>
@@ -283,7 +303,7 @@ textarea{min-height:80px;}
       <input type="text" id="username" placeholder="@yourhandle">
     </div>
 
-    <!-- STEP 3: Style -->
+    <!-- Step 3: Style -->
     <div class="panel">
       <div class="panel-title"><span class="step-badge">3</span> Text Style</div>
       <div class="style-grid" id="style-grid">
@@ -312,12 +332,17 @@ textarea{min-height:80px;}
           <div class="sname">Clean</div>
         </div>
       </div>
-      <label>Position</label>
-      <div class="pos-btns" id="pos-btns">
-        <div class="pos-btn" data-value="top">Top</div>
-        <div class="pos-btn active" data-value="center">Center</div>
-        <div class="pos-btn" data-value="bottom">Bottom</div>
+
+      <label>Caption Position</label>
+      <div class="caption-slider-wrap">
+        <div class="caption-slider-row">
+          <span style="font-size:11px;color:var(--muted);">Top</span>
+          <input type="range" id="caption-pos-slider" min="5" max="90" value="42">
+          <span style="font-size:11px;color:var(--muted);">Bot</span>
+          <span class="caption-pos-label" id="caption-pos-pct">42%</span>
+        </div>
       </div>
+
       <label>Accent Color</label>
       <div class="chips" id="color-chips">
         <div class="chip active" data-value="#ff2d78">Pink</div>
@@ -329,13 +354,33 @@ textarea{min-height:80px;}
       </div>
     </div>
 
+    <!-- Step 4: Emojis -->
+    <div class="panel">
+      <div class="panel-title"><span class="step-badge">4</span> Emojis</div>
+      <div class="emoji-panel">
+        <div class="emoji-input-row">
+          <input type="text" id="emoji-input" placeholder="Type or paste emoji…" style="font-size:18px;padding:6px 10px;">
+          <button class="emoji-add-btn" onclick="addEmojiFromInput()">+ Add</button>
+        </div>
+        <div class="emoji-grid" id="emoji-grid"></div>
+        <div class="emoji-size-row">
+          <span>Size</span>
+          <input type="range" id="emoji-size" min="20" max="120" value="60">
+          <span id="emoji-size-val">60px</span>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;">Click an emoji above to place it · Drag placed emojis on the preview to position · Click placed emoji tag to remove</div>
+        <div class="placed-emojis-list" id="placed-list"></div>
+      </div>
+    </div>
+
     <button class="btn btn-primary" id="generate-btn" onclick="generateCaptions()">✦ GENERATE CAPTIONS</button>
   </div>
 
-  <!-- RIGHT COLUMN -->
+  <!-- RIGHT -->
   <div class="right-col">
     <div class="preview-panel">
       <div class="preview-ptitle">Live Preview</div>
+      <p class="preview-hint">Drag emojis to reposition them</p>
       <div class="phone-wrap">
         <div class="phone-notch"></div>
         <canvas id="previewCanvas" width="540" height="960"></canvas>
@@ -385,33 +430,132 @@ textarea{min-height:80px;}
 // ── State ─────────────────────────────────────────────────────────────────────
 let captionData=null, videoEl=null, videoFile=null, imageFiles=[], mediaMode=null, previewFrame=null;
 let videoDuration=0, vTrimStart=0, vTrimEnd=0, aTrimStart=0, aTrimEnd=0;
+let captionPosY=0.42; // 0..1
+let placedEmojis=[]; // [{emoji, x, y, size}] — x,y in canvas coords (0..540, 0..960)
+let dragEmoji=null, dragOffX=0, dragOffY=0;
+let scrubAudio=null; // AudioContext for scrubbing
 const W=540, H=960;
+const CANVAS_DISPLAY_W=216, CANVAS_DISPLAY_H=384;
 
-// ── Chip helpers ──────────────────────────────────────────────────────────────
+// ── Chips ─────────────────────────────────────────────────────────────────────
 function singleChips(id){
-  document.getElementById(id).querySelectorAll('.chip,.cta-tag,.tab,.style-card,.pos-btn').forEach(c=>{
+  document.getElementById(id).querySelectorAll('.chip,.cta-tag,.tab,.style-card').forEach(c=>{
     c.addEventListener('click',()=>{
-      document.getElementById(id).querySelectorAll('.chip,.cta-tag,.tab,.style-card,.pos-btn').forEach(x=>x.classList.remove('active'));
+      document.getElementById(id).querySelectorAll('.chip,.cta-tag,.tab,.style-card').forEach(x=>x.classList.remove('active'));
       c.classList.add('active');
     });
   });
 }
 document.getElementById('niche-chips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('active')));
-['vibe-chips','cta-chips','hashtag-tabs','style-grid','pos-btns','color-chips'].forEach(singleChips);
+['vibe-chips','cta-chips','hashtag-tabs','style-grid','color-chips'].forEach(singleChips);
 function getSelected(id){
-  return [...document.getElementById(id).querySelectorAll('.chip.active,.cta-tag.active,.tab.active,.style-card.active,.pos-btn.active')].map(c=>c.dataset.value);
+  return [...document.getElementById(id).querySelectorAll('.chip.active,.cta-tag.active,.tab.active,.style-card.active')].map(c=>c.dataset.value);
 }
 
-// ── Drag & Drop setup ─────────────────────────────────────────────────────────
-function setupDrop(zoneId, inputId, handler){
-  const zone=document.getElementById(zoneId);
-  const input=document.getElementById(inputId);
+// ── Caption position slider ───────────────────────────────────────────────────
+document.getElementById('caption-pos-slider').addEventListener('input',function(){
+  captionPosY=this.value/100;
+  document.getElementById('caption-pos-pct').textContent=this.value+'%';
+});
+
+// ── Emoji panel ───────────────────────────────────────────────────────────────
+const EMOJI_PRESETS=['❤️','🔥','✨','💯','😍','🙌','💪','🎉','🌟','😂','👏','💫','🤩','😎','🥰',
+  '🌸','🦋','🎶','💃','🏆','👑','💎','🌈','🍕','☕','🌊','🏖️','🌴','🎯','💡'];
+const grid=document.getElementById('emoji-grid');
+EMOJI_PRESETS.forEach(em=>{
+  const btn=document.createElement('button');
+  btn.className='emoji-btn'; btn.textContent=em;
+  btn.addEventListener('click',()=>placeEmoji(em));
+  grid.appendChild(btn);
+});
+function addEmojiFromInput(){
+  const inp=document.getElementById('emoji-input');
+  const val=inp.value.trim(); if(!val) return;
+  placeEmoji(val); inp.value='';
+}
+document.getElementById('emoji-input').addEventListener('keydown',e=>{ if(e.key==='Enter') addEmojiFromInput(); });
+document.getElementById('emoji-size').addEventListener('input',function(){
+  document.getElementById('emoji-size-val').textContent=this.value+'px';
+});
+function placeEmoji(em){
+  const size=parseInt(document.getElementById('emoji-size').value)||60;
+  placedEmojis.push({id:Date.now()+Math.random(), emoji:em, x:W/2, y:H/2, size});
+  updatePlacedList();
+}
+function updatePlacedList(){
+  const list=document.getElementById('placed-list'); list.innerHTML='';
+  placedEmojis.forEach((pe,i)=>{
+    const tag=document.createElement('div'); tag.className='placed-tag';
+    tag.innerHTML=`<span>${pe.emoji}</span><span class="del">✕</span>`;
+    tag.addEventListener('click',()=>{ placedEmojis.splice(i,1); updatePlacedList(); });
+    list.appendChild(tag);
+  });
+}
+
+// ── Canvas emoji drag ─────────────────────────────────────────────────────────
+const canvas=document.getElementById('previewCanvas');
+function canvasCoords(e){
+  const rect=canvas.getBoundingClientRect();
+  const touch=e.touches?e.touches[0]:e;
+  const cx=(touch.clientX-rect.left)*(W/rect.width);
+  const cy=(touch.clientY-rect.top)*(H/rect.height);
+  return {cx,cy};
+}
+function findEmojiAt(cx,cy){
+  for(let i=placedEmojis.length-1;i>=0;i--){
+    const pe=placedEmojis[i];
+    const half=pe.size*0.6;
+    if(Math.abs(cx-pe.x)<half&&Math.abs(cy-pe.y)<half) return i;
+  }
+  return -1;
+}
+canvas.addEventListener('mousedown',e=>{
+  const {cx,cy}=canvasCoords(e);
+  const idx=findEmojiAt(cx,cy);
+  if(idx>=0){ dragEmoji=idx; dragOffX=cx-placedEmojis[idx].x; dragOffY=cy-placedEmojis[idx].y; e.preventDefault(); }
+});
+canvas.addEventListener('touchstart',e=>{
+  const {cx,cy}=canvasCoords(e);
+  const idx=findEmojiAt(cx,cy);
+  if(idx>=0){ dragEmoji=idx; dragOffX=cx-placedEmojis[idx].x; dragOffY=cy-placedEmojis[idx].y; }
+},{passive:true});
+document.addEventListener('mousemove',e=>{
+  if(dragEmoji===null) return;
+  const {cx,cy}=canvasCoords(e);
+  placedEmojis[dragEmoji].x=Math.max(0,Math.min(W,cx-dragOffX));
+  placedEmojis[dragEmoji].y=Math.max(0,Math.min(H,cy-dragOffY));
+});
+document.addEventListener('touchmove',e=>{
+  if(dragEmoji===null) return;
+  const {cx,cy}=canvasCoords(e);
+  placedEmojis[dragEmoji].x=Math.max(0,Math.min(W,cx-dragOffX));
+  placedEmojis[dragEmoji].y=Math.max(0,Math.min(H,cy-dragOffY));
+},{passive:true});
+document.addEventListener('mouseup',()=>{ dragEmoji=null; });
+document.addEventListener('touchend',()=>{ dragEmoji=null; });
+
+// ── Audio scrub ───────────────────────────────────────────────────────────────
+async function scrubTo(t){
+  if(!videoFile) return;
+  try{
+    if(scrubAudio){ scrubAudio.close().catch(()=>{}); scrubAudio=null; }
+    scrubAudio=new(window.AudioContext||window.webkitAudioContext)();
+    const ab=await videoFile.arrayBuffer();
+    const buf=await scrubAudio.decodeAudioData(ab);
+    const src=scrubAudio.createBufferSource();
+    src.buffer=buf; src.connect(scrubAudio.destination);
+    src.start(0, Math.max(0,t), 0.4); // play 0.4s snippet
+  } catch(e){}
+}
+
+// ── Drag & Drop upload ────────────────────────────────────────────────────────
+function setupDrop(zoneId,inputId,handler){
+  const zone=document.getElementById(zoneId), input=document.getElementById(inputId);
   input.addEventListener('change',()=>{ if(input.files.length) handler(input.files); });
   zone.addEventListener('dragover',e=>{ e.preventDefault(); zone.classList.add('dragover'); });
   zone.addEventListener('dragleave',e=>{ if(!zone.contains(e.relatedTarget)) zone.classList.remove('dragover'); });
   zone.addEventListener('drop',e=>{ e.preventDefault(); zone.classList.remove('dragover'); handler(e.dataTransfer.files); });
 }
-
 setupDrop('video-drop','video-file',files=>{
   const file=[...files].find(f=>f.type.startsWith('video/')); if(!file) return;
   videoFile=file; mediaMode='video'; imageFiles=[]; updateThumbs();
@@ -428,21 +572,16 @@ setupDrop('video-drop','video-file',files=>{
     vTrimStart=0; vTrimEnd=videoDuration;
     aTrimStart=0; aTrimEnd=videoDuration;
     document.getElementById('media-info').textContent=`✓ ${file.name} · ${mb}MB · ${videoDuration.toFixed(1)}s`;
-    buildBars('vbars','v-bars',40);
-    buildBars('abars','a-bars',40);
+    buildBars('vbars','v-bars',40); buildBars('abars','a-bars',40);
     updateTrimUI();
     document.getElementById('trim-panel').classList.add('visible');
-    videoEl.currentTime=vTrimStart;
-    videoEl.play().catch(()=>{});
+    videoEl.currentTime=vTrimStart; videoEl.play().catch(()=>{});
     if(previewFrame) cancelAnimationFrame(previewFrame);
     startPreview();
   };
-  videoEl.onerror=()=>document.getElementById('media-info').textContent='⚠ Could not load video. Try MP4.';
-  videoEl.addEventListener('timeupdate',()=>{
-    if(videoEl.currentTime>=vTrimEnd){ videoEl.currentTime=vTrimStart; }
-  });
+  videoEl.onerror=()=>document.getElementById('media-info').textContent='⚠ Could not load. Try MP4.';
+  videoEl.addEventListener('timeupdate',()=>{ if(videoEl.currentTime>=vTrimEnd) videoEl.currentTime=vTrimStart; });
 });
-
 setupDrop('image-drop','image-files',files=>{
   const arr=[...files].filter(f=>f.type.startsWith('image/')); if(!arr.length) return;
   mediaMode='images'; videoEl=null; videoFile=null;
@@ -451,26 +590,20 @@ setupDrop('image-drop','image-files',files=>{
   document.getElementById('video-drop').classList.remove('has-file');
   document.getElementById('image-drop').classList.add('has-file');
   imageFiles=[]; let loaded=0;
-  arr.forEach((file,idx)=>{
+  arr.forEach((f,idx)=>{
     const img=new Image();
-    img.onload=()=>{
-      imageFiles[idx]=img; loaded++;
-      if(loaded===arr.length){
-        imageFiles=imageFiles.filter(Boolean);
-        document.getElementById('media-info').textContent=`✓ ${imageFiles.length} image(s) · ${imageFiles.length*3}s slideshow`;
-        updateThumbs();
-        if(previewFrame) cancelAnimationFrame(previewFrame);
-        startPreview();
-      }
-    };
-    img.src=URL.createObjectURL(file);
+    img.onload=()=>{ imageFiles[idx]=img; loaded++; if(loaded===arr.length){
+      imageFiles=imageFiles.filter(Boolean);
+      document.getElementById('media-info').textContent=`✓ ${imageFiles.length} image(s) · ${imageFiles.length*3}s slideshow`;
+      updateThumbs(); if(previewFrame) cancelAnimationFrame(previewFrame); startPreview();
+    }};
+    img.src=URL.createObjectURL(f);
   });
 });
-
 function updateThumbs(){
   const wrap=document.getElementById('media-thumbs'); wrap.innerHTML='';
   imageFiles.forEach((img,i)=>{
-    const el=document.createElement('img'); el.src=img.src; el.title=`Remove image ${i+1}`;
+    const el=document.createElement('img'); el.src=img.src;
     el.addEventListener('click',()=>{ imageFiles.splice(i,1); updateThumbs();
       document.getElementById('media-info').textContent=`✓ ${imageFiles.length} image(s) · ${imageFiles.length*3}s slideshow`; });
     wrap.appendChild(el);
@@ -478,14 +611,12 @@ function updateThumbs(){
 }
 
 // ── Trim UI ───────────────────────────────────────────────────────────────────
-function buildBars(id, cls, count){
+function buildBars(id,cls,count){
   const el=document.getElementById(id); el.innerHTML=''; el.className='trim-bars '+cls;
   for(let i=0;i<count;i++){ const s=document.createElement('span'); s.style.height=(20+Math.random()*65)+'%'; el.appendChild(s); }
 }
-
 function updateTrimUI(){
   const d=videoDuration||1;
-  // video
   const vl=(vTrimStart/d)*100, vr=(vTrimEnd/d)*100;
   const vs=document.getElementById('vsel');
   vs.style.left=vl+'%'; vs.style.width=(vr-vl)+'%';
@@ -494,7 +625,6 @@ function updateTrimUI(){
   document.getElementById('vsl').textContent=`Start: ${vTrimStart.toFixed(1)}s`;
   document.getElementById('vel').textContent=`End: ${vTrimEnd.toFixed(1)}s`;
   document.getElementById('vdl').textContent=`${(vTrimEnd-vTrimStart).toFixed(1)}s`;
-  // audio
   const al=(aTrimStart/d)*100, ar=(aTrimEnd/d)*100;
   const as_=document.getElementById('asel');
   as_.style.left=al+'%'; as_.style.width=(ar-al)+'%';
@@ -504,8 +634,7 @@ function updateTrimUI(){
   document.getElementById('ael').textContent=`End: ${aTrimEnd.toFixed(1)}s`;
   document.getElementById('adl').textContent=`${(aTrimEnd-aTrimStart).toFixed(1)}s`;
 }
-
-function makeTrimDrag(leftId, rightId, trackId, getS, setS, getE, setE){
+function makeTrimDrag(leftId,rightId,trackId,getS,setS,getE,setE,onScrub){
   let dragging=null;
   const onMove=e=>{
     if(!dragging) return;
@@ -513,10 +642,9 @@ function makeTrimDrag(leftId, rightId, trackId, getS, setS, getE, setE){
     const rect=document.getElementById(trackId).getBoundingClientRect();
     const pct=Math.max(0,Math.min(1,(touch.clientX-rect.left)/rect.width));
     const val=pct*videoDuration;
-    if(dragging==='L') setS(Math.min(val, getE()-0.1));
-    else setE(Math.max(val, getS()+0.1));
+    if(dragging==='L'){ setS(Math.min(val,getE()-0.1)); if(onScrub) scrubTo(getS()); }
+    else { setE(Math.max(val,getS()+0.1)); if(onScrub) scrubTo(getE()-0.4); }
     updateTrimUI();
-    if(videoEl && dragging==='L') videoEl.currentTime=getS();
   };
   const onUp=()=>{ dragging=null; };
   document.getElementById(leftId).addEventListener('mousedown',e=>{ e.preventDefault(); dragging='L'; });
@@ -528,13 +656,11 @@ function makeTrimDrag(leftId, rightId, trackId, getS, setS, getE, setE){
   document.addEventListener('mouseup',onUp);
   document.addEventListener('touchend',onUp);
 }
+makeTrimDrag('vhl','vhr','vtrack',()=>vTrimStart,v=>{vTrimStart=v;if(videoEl)videoEl.currentTime=v;},()=>vTrimEnd,v=>vTrimEnd=v,true);
+makeTrimDrag('ahl','ahr','atrack',()=>aTrimStart,v=>aTrimStart=v,()=>aTrimEnd,v=>aTrimEnd=v,true);
 
-makeTrimDrag('vhl','vhr','vtrack', ()=>vTrimStart, v=>vTrimStart=v, ()=>vTrimEnd, v=>vTrimEnd=v);
-makeTrimDrag('ahl','ahr','atrack', ()=>aTrimStart, v=>aTrimStart=v, ()=>aTrimEnd,  v=>aTrimEnd=v);
-
-// ── Preview loop ──────────────────────────────────────────────────────────────
+// ── Preview ───────────────────────────────────────────────────────────────────
 function startPreview(){
-  const canvas=document.getElementById('previewCanvas');
   const ctx=canvas.getContext('2d');
   function loop(){
     ctx.clearRect(0,0,W,H);
@@ -561,6 +687,7 @@ function startPreview(){
       ctx.fillText('Upload a video or images',W/2,H/2-12);ctx.fillText('to preview',W/2,H/2+14);
     }
     if(captionData) drawOverlay(ctx);
+    drawEmojis(ctx);
     previewFrame=requestAnimationFrame(loop);
   }
   loop();
@@ -579,20 +706,18 @@ function drawMedia(ctx,vid,img,lt){
   } else { ctx.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh); }
 }
 
-// ── Overlay — hook text only, NO CTA ─────────────────────────────────────────
+// ── Text overlay ──────────────────────────────────────────────────────────────
 function wrapText(ctx,text,x,y,maxW,lh){
   const words=String(text).split(' ');let line='',lines=[];
   for(const w of words){const t=line+w+' ';if(ctx.measureText(t).width>maxW&&line){lines.push(line.trim());line=w+' ';}else line=t;}
   if(line.trim())lines.push(line.trim());
   lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lh));return lines.length;
 }
-
 function drawOverlay(ctx){
   const style=getSelected('style-grid')[0]||'bold';
-  const pos=getSelected('pos-btns')[0]||'center';
   const accent=getSelected('color-chips')[0]||'#ff2d78';
   const hook=captionData?.hook||'';
-  const posY=pos==='top'?H*0.18:pos==='bottom'?H*0.72:H*0.42;
+  const posY=captionPosY*H;
   const scrimH=200,scrimY=Math.max(0,Math.min(H-scrimH,posY-70));
   const scrim=ctx.createLinearGradient(0,scrimY,0,scrimY+scrimH);
   scrim.addColorStop(0,'rgba(0,0,0,0)');scrim.addColorStop(0.3,'rgba(0,0,0,0.65)');
@@ -637,6 +762,18 @@ function drawOverlay(ctx){
   ctx.restore();
 }
 
+// ── Emoji rendering ───────────────────────────────────────────────────────────
+function drawEmojis(ctx){
+  placedEmojis.forEach(pe=>{
+    ctx.save();
+    ctx.font=`${pe.size}px serif`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(pe.emoji, pe.x, pe.y);
+    ctx.restore();
+  });
+}
+
 // ── Generate captions ─────────────────────────────────────────────────────────
 async function generateCaptions(){
   const topic=document.getElementById('topic').value.trim();
@@ -674,7 +811,6 @@ Respond ONLY with valid JSON, no markdown:
     const raw=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
     const result=JSON.parse(raw);
     captionData=result;
-    // Build paste-when-posting text: caption + CTA + username
     let pasteText=result.caption;
     if(cta&&cta!=='None') pasteText+='\n\n'+cta;
     if(username) pasteText+='\n\n'+username;
@@ -691,7 +827,7 @@ Respond ONLY with valid JSON, no markdown:
   btn.disabled=false;
 }
 
-// ── Render video with audio ───────────────────────────────────────────────────
+// ── Render video ──────────────────────────────────────────────────────────────
 async function renderVideo(){
   if(!captionData){alert('Generate captions first!');return;}
   if(!mediaMode){alert('Upload media first!');return;}
@@ -702,18 +838,14 @@ async function renderVideo(){
   statusBar.classList.add('visible');
   renderBtn.disabled=true; renderBtn.textContent='RENDERING…';
   progressFill.style.width='0%';
-
   const rc=document.createElement('canvas'); rc.width=W; rc.height=H;
   const ctx=rc.getContext('2d');
   const secsPerImg=3;
   const totalDur=mediaMode==='video'?(vTrimEnd-vTrimStart):imageFiles.length*secsPerImg;
   const FPS=30, totalFrames=Math.ceil(totalDur*FPS);
-
-  // Set up audio via Web Audio API (video mode only)
   let audioCtx=null, sourceNode=null, audioDestination=null;
   const canvasStream=rc.captureStream(FPS);
   let finalStream=canvasStream;
-
   if(mediaMode==='video'&&videoFile){
     try{
       audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -722,33 +854,25 @@ async function renderVideo(){
       audioDestination=audioCtx.createMediaStreamDestination();
       const gain=audioCtx.createGain(); gain.gain.value=1; gain.connect(audioDestination);
       sourceNode=audioCtx.createBufferSource();
-      sourceNode.buffer=audioBuf;
-      sourceNode.connect(gain);
-      // audio starts at aTrimStart, plays for the duration of the video trim
+      sourceNode.buffer=audioBuf; sourceNode.connect(gain);
       const audioOffset=aTrimStart;
-      const audioDur=Math.min(aTrimEnd-aTrimStart, totalDur);
+      const audioDur=Math.min(aTrimEnd-aTrimStart,totalDur);
       const audioTrack=audioDestination.stream.getAudioTracks()[0];
-      finalStream=new MediaStream([...canvasStream.getVideoTracks(), audioTrack]);
-      // Start audio slightly before recording
-      sourceNode.start(audioCtx.currentTime+0.1, audioOffset, audioDur);
-    } catch(e){ console.warn('Audio init failed, rendering silent:',e); }
+      finalStream=new MediaStream([...canvasStream.getVideoTracks(),audioTrack]);
+      sourceNode.start(audioCtx.currentTime+0.1,audioOffset,audioDur);
+    } catch(e){ console.warn('Audio failed:',e); }
   }
-
   const mimeType=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
     .find(m=>MediaRecorder.isTypeSupported(m))||'video/webm';
   const recorder=new MediaRecorder(finalStream,{mimeType,videoBitsPerSecond:8_000_000});
   const chunks=[]; recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-
   if(mediaMode==='video'){
-    videoEl.muted=true;
-    videoEl.currentTime=vTrimStart;
+    videoEl.muted=true; videoEl.currentTime=vTrimStart;
     await new Promise(r=>videoEl.addEventListener('seeked',r,{once:true}));
     videoEl.play().catch(()=>{});
   }
-
   await new Promise((resolve,reject)=>{
-    recorder.onstop=resolve; recorder.onerror=reject;
-    recorder.start();
+    recorder.onstop=resolve; recorder.onerror=reject; recorder.start();
     const startWall=performance.now(), frameDur=1000/FPS; let frame=0;
     function next(){
       if(frame>=totalFrames){
@@ -776,7 +900,8 @@ async function renderVideo(){
             ctx.save();ctx.globalAlpha=fa;ctx.drawImage(ni,(W-nsw*nsc)/2,(H-nsh*nsc)/2,nsw*nsc,nsh*nsc);ctx.restore();
           }
         }
-        drawOverlay(ctx);
+        if(captionData) drawOverlay(ctx);
+        drawEmojis(ctx);
         const pct=Math.round((frame/totalFrames)*100);
         progressFill.style.width=pct+'%';
         statusText.textContent=`Rendering… ${pct}% · ${Math.ceil((totalFrames-frame)/FPS)}s left`;
@@ -785,7 +910,6 @@ async function renderVideo(){
     }
     next();
   });
-
   if(audioCtx) audioCtx.close().catch(()=>{});
   const blob=new Blob(chunks,{type:'video/webm'});
   const url=URL.createObjectURL(blob);
@@ -795,11 +919,10 @@ async function renderVideo(){
   const a=document.createElement('a'); a.href=url; a.download=`reel-${Date.now()}.webm`;
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1000);
-  // Show converter links after download
   document.getElementById('webm-notice').classList.add('visible');
 }
 
-// ── Copy / Save TXT ───────────────────────────────────────────────────────────
+// ── Copy / TXT ────────────────────────────────────────────────────────────────
 function copyCaption(){
   const cap=document.getElementById('out-caption').textContent;
   const tags=document.getElementById('out-hashtags').textContent;
