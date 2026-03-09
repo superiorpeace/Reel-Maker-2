@@ -21,7 +21,6 @@
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
     const { useState, useRef } = React;
 
@@ -29,7 +28,7 @@
     const TEXT_STYLES = [
       { id:"bold",   label:"BOLD",   sub:"BOLD",     fontWeight:900, color:"#fff" },
       { id:"stroke", label:"STROKE", sub:"OUTLINED", fontWeight:700, color:"#ff3c7e" },
-      { id:"pill",   label:"PILL",   sub:"PILL",     fontWeight:700, color:"#fff", bg:"#ff3c7e", pill:true },
+      { id:"pill",   label:"PILL",   sub:"PILL",     fontWeight:700, color:"#fff", pill:true },
       { id:"shadow", label:"SHADOW", sub:"SHADOW",   fontWeight:900, color:"#ff3c7e", shadow:true },
       { id:"grad",   label:"GRAD",   sub:"GRADIENT", fontWeight:900, grad:true },
       { id:"clean",  label:"clean",  sub:"CLEAN",    fontWeight:400, color:"#fff" },
@@ -37,23 +36,19 @@
     const ACCENT_COLORS = ["Pink","Purple","Cyan","Gold","Green","White"];
     const ACCENT_MAP = { Pink:"#ff3c7e", Purple:"#a855f7", Cyan:"#06b6d4", Gold:"#f59e0b", Green:"#22c55e", White:"#ffffff" };
     const OVERLAYS = [
-      { id:"vignette", label:"Vignette",           icon:"🌑" },
-      { id:"bars",     label:"Cinematic Black Bars",icon:"🎬" },
-      { id:"grain",    label:"Film Grain",          icon:"📽️" },
-      { id:"blur",     label:"Edge Blur",           icon:"🔆" },
+      { id:"vignette", label:"Vignette",            icon:"🌑" },
+      { id:"bars",     label:"Cinematic Black Bars", icon:"🎬" },
+      { id:"grain",    label:"Film Grain",           icon:"📽️" },
+      { id:"blur",     label:"Edge Blur",            icon:"🔆" },
     ];
     const EMOJIS = ["⬛","🔥","✨","💯","🙌","💪","🎉","☀️","👏","↩️","😎","🤩","🌸","🦋","🎵","🧚","🏆","👑","💎","🌈","▶️","🧿","🌊","🎯","🌴","🎮","💡"];
 
-    /* ── tiny helpers ── */
     const card = { background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:14, padding:"20px 22px", marginBottom:14 };
-    const pill_btn = (active, col) => ({
-      padding:"5px 14px", borderRadius:999, fontSize:12, fontWeight:500, cursor:"pointer",
-      border:`1px solid ${active ? col : "rgba(255,255,255,0.12)"}`,
-      background: active ? col+"22" : "transparent",
-      color: active ? col : "rgba(255,255,255,0.6)", transition:"all .15s",
-    });
-    const icon_btn = { padding:"7px 18px", borderRadius:7, fontSize:12, fontWeight:500, cursor:"pointer", border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.7)", transition:"all .15s" };
+    const pillBtn = (active, col) => ({ padding:"5px 14px", borderRadius:999, fontSize:12, fontWeight:500, cursor:"pointer", border:`1px solid ${active ? col : "rgba(255,255,255,0.12)"}`, background: active ? col+"22" : "transparent", color: active ? col : "rgba(255,255,255,0.6)", transition:"all .15s" });
 
+    function Label({ children, mt }) {
+      return <div style={{ fontSize:10, letterSpacing:"0.12em", color:"rgba(255,255,255,0.4)", textTransform:"uppercase", marginBottom:8, marginTop:mt||0 }}>{children}</div>;
+    }
     function SectionHeader({ num, title }) {
       return (
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
@@ -62,11 +57,6 @@
         </div>
       );
     }
-
-    function Label({ children, mt }) {
-      return <div style={{ fontSize:10, letterSpacing:"0.12em", color:"rgba(255,255,255,0.4)", textTransform:"uppercase", marginBottom:8, marginTop:mt||0 }}>{children}</div>;
-    }
-
     function Toggle({ on, onToggle }) {
       return (
         <div onClick={onToggle} style={{ width:42, height:24, borderRadius:999, cursor:"pointer", background: on ? "linear-gradient(90deg,#ff3c7e,#a855f7)" : "rgba(255,255,255,0.1)", position:"relative", transition:"background .2s", flexShrink:0 }}>
@@ -74,7 +64,6 @@
         </div>
       );
     }
-
     function DashedUpload({ icon, label, sub, onClick }) {
       const [hover, setHover] = useState(false);
       return (
@@ -88,88 +77,82 @@
     }
 
     function App() {
-      const [clips, setClips] = useState([]);
-      const [brief, setBrief] = useState("");
-      const [niche, setNiche] = useState("Lifestyle");
-      const [caption, setCaption] = useState("");
-      const [handle, setHandle] = useState("");
-      const [textStyle, setTextStyle] = useState("bold");
-      const [fontSize, setFontSize] = useState(46);
-      const [accentColor, setAccentColor] = useState("Pink");
+      const [clips, setClips]               = useState([]);
+      const [brief, setBrief]               = useState("");
+      const [niche, setNiche]               = useState("Lifestyle");
+      const [caption, setCaption]           = useState("");
+      const [handle, setHandle]             = useState("");
+      const [textStyle, setTextStyle]       = useState("bold");
+      const [fontSize, setFontSize]         = useState(46);
+      const [accentColor, setAccentColor]   = useState("Pink");
       const [activeOverlays, setActiveOverlays] = useState({});
-      const [emojiInput, setEmojiInput] = useState("");
-      const [emojiSize, setEmojiSize] = useState(64);
-      const [layers, setLayers] = useState([]);
+      const [emojiInput, setEmojiInput]     = useState("");
+      const [emojiSize, setEmojiSize]       = useState(64);
+      const [layers, setLayers]             = useState([]);
       const [generatedCaption, setGeneratedCaption] = useState("");
-      const [generating, setGenerating] = useState(false);
-      const [apiKey, setApiKey] = useState("");
-      const [showApiKey, setShowApiKey] = useState(false);
-      // export
+      const [generating, setGenerating]     = useState(false);
+      const [apiKey, setApiKey]             = useState("");
+      const [showApiKey, setShowApiKey]     = useState(false);
+      const [playing, setPlaying]           = useState(false);
       const [exportFormat, setExportFormat] = useState("MP4");
       const [exportQuality, setExportQuality] = useState("1080p");
-      const [exportRatio, setExportRatio] = useState("9:16");
-      const [exportFps, setExportFps] = useState("30fps");
-      const [exporting, setExporting] = useState(false);
+      const [exportRatio, setExportRatio]   = useState("9:16");
+      const [exportFps, setExportFps]       = useState("30fps");
+      const [exporting, setExporting]       = useState(false);
       const [exportProgress, setExportProgress] = useState(0);
-      const [exportDone, setExportDone] = useState(false);
+      const [exportDone, setExportDone]     = useState(false);
 
-      const videoInputRef = useRef(null);
-      const imageInputRef = useRef(null);
+      const videoInputRef   = useRef(null);
+      const imageInputRef   = useRef(null);
       const overlayInputRef = useRef(null);
+      const previewVideoRef = useRef(null);
 
       const addClips = (files, type) => {
-        const newClips = files.map(f => ({ id: Date.now()+Math.random(), name:f.name, url:URL.createObjectURL(f), duration: type==="VID" ? "8.0s" : "5.0s", type }));
-        setClips(p => [...p, ...newClips]);
-        setLayers(p => [...p, ...newClips.map(c => ({ id:c.id, label:c.name, type: type==="VID" ? "video" : "image", visible:true }))]);
+        const nc = files.map(f => ({ id:Date.now()+Math.random(), name:f.name, url:URL.createObjectURL(f), duration: type==="VID"?"8.0s":"5.0s", type }));
+        setClips(p => [...p, ...nc]);
+        setLayers(p => [...p, ...nc.map(c => ({ id:c.id, label:c.name, type: type==="VID"?"video":"image", visible:true }))]);
       };
-
-      const removeClip = id => { setClips(p => p.filter(c => c.id!==id)); setLayers(p => p.filter(l => l.id!==id)); };
+      const removeClip  = id => { setClips(p => p.filter(c => c.id!==id)); setLayers(p => p.filter(l => l.id!==id)); };
       const toggleOverlay = id => setActiveOverlays(p => ({ ...p, [id]: !p[id] }));
-      const addEmoji = em => { const id=Date.now(); setLayers(p => [...p, { id, label:em, type:"emoji", visible:true }]); };
-      const addShape = sh => { const id=Date.now(); setLayers(p => [...p, { id, label:sh, type:"shape", visible:true }]); };
+      const addEmoji    = em => setLayers(p => [...p, { id:Date.now(), label:em, type:"emoji", visible:true }]);
+      const addShape    = sh => setLayers(p => [...p, { id:Date.now(), label:sh, type:"shape", visible:true }]);
+      const handlePlay  = () => { if (previewVideoRef.current) { previewVideoRef.current.play(); setPlaying(true); } };
+      const handleStop  = () => { if (previewVideoRef.current) { previewVideoRef.current.pause(); previewVideoRef.current.currentTime=0; setPlaying(false); } };
 
       const generateCaptions = async () => {
         if (!apiKey) { setShowApiKey(true); return; }
-        setGenerating(true);
-        setGeneratedCaption("");
+        setGenerating(true); setGeneratedCaption("");
         try {
           const res = await fetch("https://api.anthropic.com/v1/messages", {
             method:"POST",
-            headers:{ "Content-Type":"application/json", "x-api-key": apiKey, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
-            body: JSON.stringify({
-              model:"claude-sonnet-4-20250514",
-              max_tokens:800,
-              messages:[{ role:"user", content:`Generate 3 short, punchy social media reel captions for a ${niche} reel about "${brief||"general content"}". Each 1-2 lines, engaging, with relevant emojis. Numbered list.` }]
-            })
+            headers:{ "Content-Type":"application/json", "x-api-key":apiKey, "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true" },
+            body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800, messages:[{ role:"user", content:`Generate 3 short punchy social media reel captions for a ${niche} reel about "${brief||"general content"}". Each 1-2 lines, engaging, with emojis. Numbered list.` }] })
           });
           const data = await res.json();
-          const text = data.content?.find(b => b.type==="text")?.text || "No captions returned.";
-          setGeneratedCaption(text);
+          setGeneratedCaption(data.content?.find(b => b.type==="text")?.text || "No captions returned.");
           setLayers(p => [...p, { id:Date.now(), label:"AI Captions", type:"text", visible:true }]);
-        } catch(err) {
-          setGeneratedCaption("Error: " + err.message);
-        }
+        } catch(err) { setGeneratedCaption("Error: "+err.message); }
         setGenerating(false);
       };
 
       const startExport = () => {
         setExporting(true); setExportDone(false); setExportProgress(0);
-        let p = 0;
+        let p=0;
         const iv = setInterval(() => {
           p += Math.random()*12+4;
-          if (p >= 100) { clearInterval(iv); setExportProgress(100); setTimeout(() => { setExporting(false); setExportDone(true); }, 400); }
+          if (p>=100) { clearInterval(iv); setExportProgress(100); setTimeout(() => { setExporting(false); setExportDone(true); },400); }
           else setExportProgress(Math.round(p));
         }, 220);
       };
 
-      const previewBg = clips.find(c => c.type==="IMG")?.url || null;
-      const activeTextStyle = TEXT_STYLES.find(t => t.id===textStyle);
+      const previewVideo = clips.find(c => c.type==="VID") || null;
+      const previewImg   = clips.find(c => c.type==="IMG") || null;
+      const activeTS     = TEXT_STYLES.find(t => t.id===textStyle);
 
-      /* ── render ── */
       return (
         <div style={{ minHeight:"100vh", background:"#0d0d18", color:"#fff", fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
 
-          {/* Header */}
+          {/* ── Header ── */}
           <div style={{ textAlign:"center", padding:"36px 20px 24px" }}>
             <h1 style={{ fontSize:"clamp(36px,7vw,64px)", fontWeight:900, margin:0, letterSpacing:"-0.02em", lineHeight:1 }}>
               <span style={{ color:"#ff3c7e" }}>REEL </span><span style={{ color:"#fff" }}>MAKER</span>
@@ -177,11 +160,11 @@
             <p style={{ fontSize:11, letterSpacing:"0.2em", color:"rgba(255,255,255,0.35)", marginTop:10, textTransform:"uppercase" }}>SEQUENCE · STYLE · OVERLAY · DOWNLOAD</p>
           </div>
 
-          {/* API Key banner */}
+          {/* ── API Key banner ── */}
           {showApiKey && (
             <div style={{ maxWidth:1200, margin:"0 auto 16px", padding:"0 20px" }}>
               <div style={{ background:"rgba(255,60,126,0.08)", border:"1px solid rgba(255,60,126,0.25)", borderRadius:10, padding:"14px 16px", display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-                <span style={{ fontSize:13, color:"rgba(255,255,255,0.7)", flex:1 }}>🔑 Enter your Anthropic API key to generate captions:</span>
+                <span style={{ fontSize:13, color:"rgba(255,255,255,0.7)", flex:1 }}>🔑 Anthropic API key for AI captions:</span>
                 <input value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="sk-ant-..." type="password"
                   style={{ flex:"0 0 280px", background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,60,126,0.3)", borderRadius:7, color:"#fff", fontSize:13, padding:"8px 12px", outline:"none" }} />
                 <button onClick={() => setShowApiKey(false)} style={{ padding:"8px 16px", borderRadius:7, background:"#ff3c7e", border:"none", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer" }}>Save</button>
@@ -189,22 +172,21 @@
             </div>
           )}
 
-          {/* Main layout */}
           <div style={{ display:"flex", gap:16, padding:"0 20px 60px", maxWidth:1200, margin:"0 auto", alignItems:"flex-start" }}>
 
-            {/* ══════════ LEFT PANEL ══════════ */}
+            {/* ════ LEFT ════ */}
             <div style={{ flex:"0 0 560px", minWidth:0 }}>
 
-              {/* 1. Media Sequence */}
+              {/* 1. Media */}
               <div style={card}>
                 <SectionHeader num="1" title="Media Sequence" />
                 <div style={{ display:"flex", gap:10, marginBottom:16 }}>
                   <DashedUpload icon="🎬" label="Add Video(s)" sub="MP4 · MOV · WebM" onClick={() => videoInputRef.current?.click()} />
-                  <DashedUpload icon="🖼️" label="Add Image(s)" sub="JPG · PNG · WebP" onClick={() => imageInputRef.current?.click()} />
+                  <DashedUpload icon="🖼️" label="Add Image(s)" sub="JPG · PNG · WebP"  onClick={() => imageInputRef.current?.click()} />
                   <input ref={videoInputRef} type="file" accept="video/*" multiple style={{ display:"none" }} onChange={e => addClips(Array.from(e.target.files),"VID")} />
                   <input ref={imageInputRef} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={e => addClips(Array.from(e.target.files),"IMG")} />
                 </div>
-                {clips.length > 0 && <>
+                {clips.length>0 && <>
                   <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
                     <span style={{ fontSize:10, letterSpacing:"0.12em", color:"rgba(255,255,255,0.35)", textTransform:"uppercase" }}>Playback Order</span>
                     <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)" }}>click × to remove</span>
@@ -215,9 +197,9 @@
                         <div style={{ width:72, height:72, borderRadius:8, overflow:"hidden", background:"#1a1a2e", border:"1px solid rgba(255,255,255,0.1)" }}>
                           {clip.type==="IMG"
                             ? <img src={clip.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                            : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>🎬</div>}
+                            : <video src={clip.url} muted style={{ width:"100%", height:"100%", objectFit:"cover" }} />}
                         </div>
-                        <div style={{ position:"absolute", top:3, left:3, background:"rgba(0,0,0,0.7)", borderRadius:3, padding:"1px 4px", fontSize:9, fontWeight:700, color: clip.type==="VID" ? "#60a5fa" : "#a78bfa" }}>{clip.type}</div>
+                        <div style={{ position:"absolute", top:3, left:3, background:"rgba(0,0,0,0.7)", borderRadius:3, padding:"1px 4px", fontSize:9, fontWeight:700, color: clip.type==="VID"?"#60a5fa":"#a78bfa" }}>{clip.type}</div>
                         <button onClick={() => removeClip(clip.id)} style={{ position:"absolute", top:2, right:2, width:16, height:16, borderRadius:"50%", background:"#ef4444", border:"none", color:"#fff", fontSize:9, cursor:"pointer" }}>×</button>
                         <div style={{ textAlign:"center", fontSize:10, color:"rgba(255,255,255,0.5)", marginTop:3 }}>{clip.duration}</div>
                       </div>
@@ -227,14 +209,14 @@
                 </>}
               </div>
 
-              {/* Picture-in-Picture */}
+              {/* PiP */}
               <div style={card}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
                   <div style={{ width:24, height:24, borderRadius:"50%", background:"linear-gradient(135deg,#ff3c7e,#a855f7)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:"#fff" }}>↗</div>
                   <span style={{ fontSize:11, fontWeight:700, letterSpacing:"0.15em", color:"rgba(255,255,255,0.55)", textTransform:"uppercase" }}>Picture-in-Picture</span>
                 </div>
                 <DashedUpload icon="🖼️+" label="Add overlay images" sub="Drag on preview · corner handle to resize" onClick={() => overlayInputRef.current?.click()} />
-                <input ref={overlayInputRef} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={e => { const files=Array.from(e.target.files); setLayers(p => [...p, ...files.map(f => ({ id:Date.now()+Math.random(), label:f.name, type:"overlay", visible:true }))]); }} />
+                <input ref={overlayInputRef} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={e => { Array.from(e.target.files).forEach(f => setLayers(p => [...p, { id:Date.now()+Math.random(), label:f.name, type:"overlay", visible:true }])); }} />
               </div>
 
               {/* 2. Caption Brief */}
@@ -245,7 +227,7 @@
                   style={{ width:"100%", minHeight:60, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"#fff", fontSize:14, padding:"10px 12px", outline:"none" }} />
                 <Label mt={14}>Niche</Label>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                  {NICHES.map(n => <button key={n} onClick={() => setNiche(n)} style={pill_btn(niche===n,"#ff3c7e")}>{n}</button>)}
+                  {NICHES.map(n => <button key={n} onClick={() => setNiche(n)} style={pillBtn(niche===n,"#ff3c7e")}>{n}</button>)}
                 </div>
                 <Label mt={14}>Caption Text</Label>
                 <input value={caption} onChange={e => setCaption(e.target.value)} placeholder="Your caption here..."
@@ -260,8 +242,8 @@
                 <SectionHeader num="3" title="Text Style" />
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:16 }}>
                   {TEXT_STYLES.map(ts => (
-                    <button key={ts.id} onClick={() => setTextStyle(ts.id)} style={{ padding:"12px 8px", borderRadius:8, cursor:"pointer", border:`1.5px solid ${textStyle===ts.id ? "#ff3c7e" : "rgba(255,255,255,0.1)"}`, background: textStyle===ts.id ? "rgba(255,60,126,0.1)" : "rgba(255,255,255,0.03)", display:"flex", flexDirection:"column", alignItems:"center", gap:4, transition:"all .15s" }}>
-                      <span style={{ fontSize:16, fontWeight:ts.fontWeight, color: ts.grad ? "transparent" : ts.pill ? "#fff" : ts.color, background: ts.grad ? "linear-gradient(90deg,#ff3c7e,#a855f7)" : ts.pill ? "#ff3c7e" : "transparent", WebkitBackgroundClip: ts.grad ? "text" : "unset", borderRadius: ts.pill ? "999px" : 0, padding: ts.pill ? "2px 10px" : 0, textShadow: ts.shadow ? "3px 3px 0 #000" : "none" }}>{ts.label}</span>
+                    <button key={ts.id} onClick={() => setTextStyle(ts.id)} style={{ padding:"12px 8px", borderRadius:8, cursor:"pointer", border:`1.5px solid ${textStyle===ts.id?"#ff3c7e":"rgba(255,255,255,0.1)"}`, background: textStyle===ts.id?"rgba(255,60,126,0.1)":"rgba(255,255,255,0.03)", display:"flex", flexDirection:"column", alignItems:"center", gap:4, transition:"all .15s" }}>
+                      <span style={{ fontSize:16, fontWeight:ts.fontWeight, color: ts.grad?"transparent":ts.pill?"#fff":ts.color, background: ts.grad?"linear-gradient(90deg,#ff3c7e,#a855f7)":ts.pill?"#ff3c7e":"transparent", WebkitBackgroundClip: ts.grad?"text":"unset", borderRadius: ts.pill?"999px":0, padding: ts.pill?"2px 10px":0, textShadow: ts.shadow?"3px 3px 0 #000":"none" }}>{ts.label}</span>
                       <span style={{ fontSize:9, color:"rgba(255,255,255,0.4)", letterSpacing:"0.1em" }}>{ts.sub}</span>
                     </button>
                   ))}
@@ -275,7 +257,7 @@
                 </div>
                 <Label mt={14}>Accent Color</Label>
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                  {ACCENT_COLORS.map(c => <button key={c} onClick={() => setAccentColor(c)} style={pill_btn(accentColor===c, ACCENT_MAP[c])}>{c}</button>)}
+                  {ACCENT_COLORS.map(c => <button key={c} onClick={() => setAccentColor(c)} style={pillBtn(accentColor===c,ACCENT_MAP[c])}>{c}</button>)}
                 </div>
               </div>
 
@@ -293,14 +275,15 @@
                 ))}
               </div>
 
-              {/* 5. Shapes & Covers */}
+              {/* 5. Shapes */}
               <div style={card}>
                 <SectionHeader num="5" title="Shapes & Covers" />
                 <div style={{ display:"flex", gap:8 }}>
                   {["Rectangle","Circle"].map(s => (
-                    <button key={s} onClick={() => addShape(s)} style={icon_btn}>
-                      {s==="Rectangle" ? "▭" : "○"} {s}
-                    </button>
+                    <button key={s} onClick={() => addShape(s)} style={{ padding:"7px 18px", borderRadius:7, fontSize:12, fontWeight:500, cursor:"pointer", border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.7)", transition:"all .15s" }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor="#ff3c7e"; e.currentTarget.style.color="#fff"; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(255,255,255,0.15)"; e.currentTarget.style.color="rgba(255,255,255,0.7)"; }}
+                    >{s==="Rectangle"?"▭":"○"} {s}</button>
                   ))}
                 </div>
               </div>
@@ -326,14 +309,13 @@
                   <input type="range" min={16} max={128} value={emojiSize} onChange={e => setEmojiSize(+e.target.value)} style={{ flex:1 }} />
                   <span style={{ fontSize:11, color:"#ff3c7e", fontWeight:700, minWidth:34 }}>{emojiSize}px</span>
                 </div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", marginTop:6 }}>Click to place · drag on preview to move</div>
               </div>
 
-              {/* 7. Voiceover / Audio */}
+              {/* 7. Audio */}
               <div style={card}>
                 <SectionHeader num="7" title="Voiceover / Audio" />
                 <div style={{ display:"flex", gap:10 }}>
-                  {[{label:"🎙️ Record", hov:"#ff3c7e"},{label:"📁 Upload Audio", hov:"#f59e0b"}].map(b => (
+                  {[{label:"🎙️ Record",hov:"#ff3c7e"},{label:"📁 Upload Audio",hov:"#f59e0b"}].map(b => (
                     <button key={b.label} style={{ flex:1, padding:11, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:8, color:"rgba(255,255,255,0.75)", fontSize:13, fontWeight:500, cursor:"pointer", transition:"all .15s" }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor=b.hov; e.currentTarget.style.color="#fff"; }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(255,255,255,0.1)"; e.currentTarget.style.color="rgba(255,255,255,0.75)"; }}
@@ -343,10 +325,9 @@
               </div>
 
               {/* Generate Captions */}
-              <button onClick={generateCaptions} disabled={generating} style={{ width:"100%", padding:16, borderRadius:12, border:"none", background: generating ? "rgba(255,60,126,0.4)" : "linear-gradient(90deg,#ff3c7e,#a855f7)", color:"#fff", fontSize:15, fontWeight:800, letterSpacing:"0.12em", cursor: generating ? "not-allowed" : "pointer", textTransform:"uppercase", boxShadow: generating ? "none" : "0 4px 24px rgba(255,60,126,0.35)", marginBottom:14 }}>
+              <button onClick={generateCaptions} disabled={generating} style={{ width:"100%", padding:16, borderRadius:12, border:"none", background: generating?"rgba(255,60,126,0.4)":"linear-gradient(90deg,#ff3c7e,#a855f7)", color:"#fff", fontSize:15, fontWeight:800, letterSpacing:"0.12em", cursor: generating?"not-allowed":"pointer", textTransform:"uppercase", boxShadow: generating?"none":"0 4px 24px rgba(255,60,126,0.35)", marginBottom:14 }}>
                 {generating ? "⏳ GENERATING…" : "✦ GENERATE CAPTIONS"}
               </button>
-
               {generatedCaption && (
                 <div style={{ background:"rgba(168,85,247,0.1)", border:"1px solid rgba(168,85,247,0.2)", borderRadius:10, padding:"14px 16px", marginBottom:14 }}>
                   <div style={{ fontSize:10, color:"rgba(168,85,247,0.8)", letterSpacing:"0.12em", textTransform:"uppercase", marginBottom:8 }}>✦ AI Generated Captions</div>
@@ -354,33 +335,30 @@
                 </div>
               )}
 
-              {/* 8. Export & Download */}
+              {/* 8. Export */}
               <div style={card}>
                 <SectionHeader num="8" title="Export & Download" />
-
                 <Label>Format</Label>
                 <div style={{ display:"flex", gap:8, marginBottom:16 }}>
                   {["MP4","MOV","GIF"].map(f => (
-                    <button key={f} onClick={() => setExportFormat(f)} style={{ flex:1, padding:"9px 0", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer", border:`1.5px solid ${exportFormat===f ? "#ff3c7e" : "rgba(255,255,255,0.1)"}`, background: exportFormat===f ? "rgba(255,60,126,0.12)" : "rgba(255,255,255,0.03)", color: exportFormat===f ? "#ff3c7e" : "rgba(255,255,255,0.55)", transition:"all .15s" }}>{f}</button>
+                    <button key={f} onClick={() => setExportFormat(f)} style={{ flex:1, padding:"9px 0", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer", border:`1.5px solid ${exportFormat===f?"#ff3c7e":"rgba(255,255,255,0.1)"}`, background: exportFormat===f?"rgba(255,60,126,0.12)":"rgba(255,255,255,0.03)", color: exportFormat===f?"#ff3c7e":"rgba(255,255,255,0.55)", transition:"all .15s" }}>{f}</button>
                   ))}
                 </div>
-
                 <Label>Quality</Label>
                 <div style={{ display:"flex", gap:8, marginBottom:16 }}>
                   {["720p","1080p","4K"].map(q => (
-                    <button key={q} onClick={() => setExportQuality(q)} style={{ flex:1, padding:"9px 0", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer", border:`1.5px solid ${exportQuality===q ? "#a855f7" : "rgba(255,255,255,0.1)"}`, background: exportQuality===q ? "rgba(168,85,247,0.12)" : "rgba(255,255,255,0.03)", color: exportQuality===q ? "#a855f7" : "rgba(255,255,255,0.55)", transition:"all .15s" }}>
-                      {q}{q==="4K" && <span style={{ fontSize:9, marginLeft:4, background:"rgba(168,85,247,0.3)", padding:"1px 5px", borderRadius:4 }}> PRO</span>}
+                    <button key={q} onClick={() => setExportQuality(q)} style={{ flex:1, padding:"9px 0", borderRadius:8, fontSize:13, fontWeight:700, cursor:"pointer", border:`1.5px solid ${exportQuality===q?"#a855f7":"rgba(255,255,255,0.1)"}`, background: exportQuality===q?"rgba(168,85,247,0.12)":"rgba(255,255,255,0.03)", color: exportQuality===q?"#a855f7":"rgba(255,255,255,0.55)", transition:"all .15s" }}>
+                      {q}{q==="4K"&&<span style={{ fontSize:9, marginLeft:4, background:"rgba(168,85,247,0.3)", padding:"1px 5px", borderRadius:4 }}> PRO</span>}
                     </button>
                   ))}
                 </div>
-
                 <div style={{ display:"flex", gap:16, marginBottom:16 }}>
                   <div style={{ flex:1 }}>
                     <Label>Aspect Ratio</Label>
                     <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                       {[["9:16","Reels/TikTok"],["1:1","Square"],["16:9","YouTube"]].map(([r,hint]) => (
-                        <button key={r} onClick={() => setExportRatio(r)} style={{ padding:"7px 10px", borderRadius:7, fontSize:12, fontWeight:600, cursor:"pointer", border:`1.5px solid ${exportRatio===r ? "#06b6d4" : "rgba(255,255,255,0.08)"}`, background: exportRatio===r ? "rgba(6,182,212,0.1)" : "rgba(255,255,255,0.02)", color: exportRatio===r ? "#06b6d4" : "rgba(255,255,255,0.5)", display:"flex", alignItems:"center", gap:8, transition:"all .15s" }}>
-                          <div style={{ width: r==="9:16"?10:r==="1:1"?14:22, height: r==="9:16"?16:r==="1:1"?14:10, border:`2px solid ${exportRatio===r ? "#06b6d4" : "rgba(255,255,255,0.3)"}`, borderRadius:2, flexShrink:0 }} />
+                        <button key={r} onClick={() => setExportRatio(r)} style={{ padding:"7px 10px", borderRadius:7, fontSize:12, fontWeight:600, cursor:"pointer", border:`1.5px solid ${exportRatio===r?"#06b6d4":"rgba(255,255,255,0.08)"}`, background: exportRatio===r?"rgba(6,182,212,0.1)":"rgba(255,255,255,0.02)", color: exportRatio===r?"#06b6d4":"rgba(255,255,255,0.5)", display:"flex", alignItems:"center", gap:8, transition:"all .15s" }}>
+                          <div style={{ width:r==="9:16"?10:r==="1:1"?14:22, height:r==="9:16"?16:r==="1:1"?14:10, border:`2px solid ${exportRatio===r?"#06b6d4":"rgba(255,255,255,0.3)"}`, borderRadius:2, flexShrink:0 }} />
                           {r} <span style={{ fontSize:9, color:"rgba(255,255,255,0.3)" }}>· {hint}</span>
                         </button>
                       ))}
@@ -390,21 +368,17 @@
                     <Label>Frame Rate</Label>
                     <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                       {[["24fps","Cinematic"],["30fps",""],["60fps","Smooth"]].map(([fps,hint]) => (
-                        <button key={fps} onClick={() => setExportFps(fps)} style={{ padding:"7px 10px", borderRadius:7, fontSize:12, fontWeight:600, cursor:"pointer", border:`1.5px solid ${exportFps===fps ? "#f59e0b" : "rgba(255,255,255,0.08)"}`, background: exportFps===fps ? "rgba(245,158,11,0.1)" : "rgba(255,255,255,0.02)", color: exportFps===fps ? "#f59e0b" : "rgba(255,255,255,0.5)", transition:"all .15s" }}>
-                          {fps}{hint && <span style={{ fontSize:9, color:"rgba(255,255,255,0.3)", marginLeft:4 }}>· {hint}</span>}
+                        <button key={fps} onClick={() => setExportFps(fps)} style={{ padding:"7px 10px", borderRadius:7, fontSize:12, fontWeight:600, cursor:"pointer", border:`1.5px solid ${exportFps===fps?"#f59e0b":"rgba(255,255,255,0.08)"}`, background: exportFps===fps?"rgba(245,158,11,0.1)":"rgba(255,255,255,0.02)", color: exportFps===fps?"#f59e0b":"rgba(255,255,255,0.5)", transition:"all .15s" }}>
+                          {fps}{hint&&<span style={{ fontSize:9, color:"rgba(255,255,255,0.3)", marginLeft:4 }}>· {hint}</span>}
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
-
-                {/* Summary */}
                 <div style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:8, padding:"10px 14px", marginBottom:16, display:"flex", justifyContent:"space-between" }}>
                   <span style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>{exportRatio} · {exportQuality} · {exportFps} · {exportFormat}</span>
                   <span style={{ fontSize:11, color:"rgba(255,255,255,0.25)" }}>~{exportQuality==="4K"?"800":exportQuality==="1080p"?"250":"80"}MB est.</span>
                 </div>
-
-                {/* Progress */}
                 {exporting && (
                   <div style={{ marginBottom:14 }}>
                     <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
@@ -416,33 +390,40 @@
                     </div>
                   </div>
                 )}
-
                 {exportDone && (
                   <div style={{ marginBottom:14, background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.25)", borderRadius:8, padding:"10px 14px", display:"flex", alignItems:"center", gap:8 }}>
                     <span style={{ fontSize:18 }}>✅</span>
-                    <span style={{ fontSize:13, color:"#22c55e", fontWeight:600 }}>Reel exported successfully!</span>
+                    <span style={{ fontSize:13, color:"#22c55e", fontWeight:600 }}>Reel exported! Share it below ↓</span>
                   </div>
                 )}
-
-                <button onClick={startExport} disabled={exporting} style={{ width:"100%", padding:15, borderRadius:12, border:"none", background: exporting ? "rgba(255,255,255,0.06)" : "linear-gradient(90deg,#ff3c7e,#a855f7)", color: exporting ? "rgba(255,255,255,0.4)" : "#fff", fontSize:15, fontWeight:800, letterSpacing:"0.12em", cursor: exporting ? "not-allowed" : "pointer", textTransform:"uppercase", boxShadow: exporting ? "none" : "0 4px 24px rgba(255,60,126,0.35)", transition:"all .2s" }}>
+                <button onClick={startExport} disabled={exporting} style={{ width:"100%", padding:15, borderRadius:12, border:"none", background: exporting?"rgba(255,255,255,0.06)":"linear-gradient(90deg,#ff3c7e,#a855f7)", color: exporting?"rgba(255,255,255,0.4)":"#fff", fontSize:15, fontWeight:800, letterSpacing:"0.12em", cursor: exporting?"not-allowed":"pointer", textTransform:"uppercase", boxShadow: exporting?"none":"0 4px 24px rgba(255,60,126,0.35)", transition:"all .2s" }}>
                   {exporting ? `⏳ RENDERING… ${exportProgress}%` : exportDone ? "⬇ DOWNLOAD REEL" : "⬇ EXPORT REEL"}
                 </button>
 
+                {/* ── Share buttons ── open real upload pages */}
                 {exportDone && (
-                  <div style={{ display:"flex", gap:8, marginTop:10 }}>
-                    {[{label:"Instagram",color:"#e1306c",icon:"📸"},{label:"TikTok",color:"#69c9d0",icon:"🎵"},{label:"YouTube",color:"#ff0000",icon:"▶️"}].map(s => (
-                      <button key={s.label} style={{ flex:1, padding:"8px 4px", borderRadius:8, fontSize:11, fontWeight:600, cursor:"pointer", border:`1px solid ${s.color}44`, background:`${s.color}11`, color:s.color, transition:"all .15s" }}
-                        onMouseEnter={e => e.currentTarget.style.background=`${s.color}22`}
-                        onMouseLeave={e => e.currentTarget.style.background=`${s.color}11`}
-                      >{s.icon} {s.label}</button>
-                    ))}
+                  <div style={{ marginTop:10 }}>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8, textAlign:"center" }}>Open upload page to share</div>
+                    <div style={{ display:"flex", gap:8 }}>
+                      {[
+                        { label:"Instagram", color:"#e1306c", icon:"📸", url:"https://www.instagram.com/reels/" },
+                        { label:"TikTok",    color:"#69c9d0", icon:"🎵", url:"https://www.tiktok.com/upload" },
+                        { label:"YouTube",   color:"#ff0000", icon:"▶️", url:"https://studio.youtube.com/" },
+                      ].map(s => (
+                        <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
+                          style={{ flex:1, padding:"9px 4px", borderRadius:8, fontSize:11, fontWeight:600, border:`1px solid ${s.color}55`, background:`${s.color}15`, color:s.color, textDecoration:"none", display:"flex", alignItems:"center", justifyContent:"center", gap:4, transition:"all .15s" }}
+                          onMouseEnter={e => { e.currentTarget.style.background=`${s.color}30`; e.currentTarget.style.transform="translateY(-1px)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background=`${s.color}15`; e.currentTarget.style.transform=""; }}
+                        >{s.icon} {s.label}</a>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
             </div>{/* end left */}
 
-            {/* ══════════ RIGHT PANEL ══════════ */}
+            {/* ════ RIGHT ════ */}
             <div style={{ flex:1, minWidth:0, position:"sticky", top:20 }}>
 
               {/* Layers */}
@@ -465,41 +446,73 @@
               {/* Live Preview */}
               <div style={card}>
                 <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.15em", color:"rgba(255,255,255,0.45)", textTransform:"uppercase", marginBottom:10 }}>Live Preview</div>
-                <p style={{ fontSize:10, color:"rgba(255,255,255,0.25)", marginBottom:14, textAlign:"center" }}>Drag media to pan · scroll/pinch to zoom · drag elements to move</p>
+                <p style={{ fontSize:10, color:"rgba(255,255,255,0.25)", marginBottom:14, textAlign:"center" }}>Upload media · hit Play to watch</p>
 
                 <div style={{ display:"flex", justifyContent:"center", marginBottom:16 }}>
                   <div style={{ width:200, height:360, borderRadius:28, background:"#111", border:"3px solid #333", position:"relative", overflow:"hidden", boxShadow:"0 20px 60px rgba(0,0,0,0.7)" }}>
                     {/* Notch */}
                     <div style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:60, height:16, background:"#111", borderRadius:"0 0 12px 12px", zIndex:10 }} />
 
-                    {/* Content */}
-                    <div style={{ width:"100%", height:"100%", background: previewBg ? `url(${previewBg}) center/cover` : "linear-gradient(180deg,#1a1a2e,#0d0d18)", display:"flex", flexDirection:"column", justifyContent:"flex-end", padding:12 }}>
-                      {activeOverlays.vignette && <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%)", pointerEvents:"none" }} />}
-                      {activeOverlays.bars && <>
-                        <div style={{ position:"absolute", top:0, left:0, right:0, height:28, background:"#000", pointerEvents:"none" }} />
-                        <div style={{ position:"absolute", bottom:0, left:0, right:0, height:28, background:"#000", pointerEvents:"none" }} />
-                      </>}
+                    {/* Video */}
+                    {previewVideo && (
+                      <video ref={previewVideoRef} src={previewVideo.url} loop playsInline
+                        style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:1 }}
+                        onEnded={() => setPlaying(false)}
+                      />
+                    )}
+                    {/* Image fallback */}
+                    {!previewVideo && previewImg && (
+                      <img src={previewImg.url} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", zIndex:1 }} />
+                    )}
+                    {/* Empty */}
+                    {!previewVideo && !previewImg && !caption && (
+                      <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg,#1a1a2e,#0d0d18)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1 }}>
+                        <span style={{ fontSize:32, opacity:0.2 }}>▶</span>
+                      </div>
+                    )}
 
+                    {/* Overlay effects */}
+                    {activeOverlays.vignette && <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.75) 100%)", pointerEvents:"none", zIndex:3 }} />}
+                    {activeOverlays.bars && <>
+                      <div style={{ position:"absolute", top:0, left:0, right:0, height:30, background:"#000", pointerEvents:"none", zIndex:3 }} />
+                      <div style={{ position:"absolute", bottom:0, left:0, right:0, height:30, background:"#000", pointerEvents:"none", zIndex:3 }} />
+                    </>}
+
+                    {/* Caption */}
+                    <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"10px 10px 16px", zIndex:4 }}>
                       {caption && (
-                        <div style={{ marginBottom:8, fontSize:Math.min(fontSize*0.28,14), fontWeight: activeTextStyle?.fontWeight||700, color: ACCENT_MAP[accentColor]||"#ff3c7e", textShadow: textStyle==="shadow" ? "2px 2px 0 #000" : "none" }}>
+                        <div style={{ marginBottom:3, fontSize:Math.min(fontSize*0.28,15), fontWeight:activeTS?.fontWeight||700, color:ACCENT_MAP[accentColor]||"#ff3c7e", textShadow: textStyle==="shadow"?"2px 2px 0 #000":"1px 1px 4px rgba(0,0,0,0.8)" }}>
                           {caption}
                         </div>
                       )}
-                      {handle && <div style={{ fontSize:9, color:"rgba(255,255,255,0.6)", marginBottom:4 }}>{handle}</div>}
-                      {!previewBg && !caption && (
-                        <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                          <span style={{ fontSize:32, opacity:0.2 }}>▶</span>
-                        </div>
-                      )}
+                      {handle && <div style={{ fontSize:9, color:"rgba(255,255,255,0.7)", textShadow:"0 1px 3px rgba(0,0,0,0.8)" }}>{handle}</div>}
                     </div>
+
+                    {/* Big play button overlay when video loaded but paused */}
+                    {previewVideo && !playing && (
+                      <div onClick={handlePlay} style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", zIndex:5, cursor:"pointer" }}>
+                        <div style={{ width:52, height:52, borderRadius:"50%", background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(4px)", border:"2px solid rgba(255,255,255,0.3)" }}>
+                          <span style={{ fontSize:20, marginLeft:4 }}>▶</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
+                {/* Controls */}
                 <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
-                  {["▶ Play","■ Stop"].map(b => (
-                    <button key={b} style={{ padding:"7px 20px", borderRadius:7, fontSize:12, fontWeight:600, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.8)", cursor:"pointer" }}>{b}</button>
-                  ))}
+                  <button onClick={handlePlay} disabled={!previewVideo||playing}
+                    style={{ padding:"7px 20px", borderRadius:7, fontSize:12, fontWeight:600, background: playing?"rgba(255,60,126,0.15)":"rgba(255,255,255,0.07)", border:`1px solid ${playing?"#ff3c7e":"rgba(255,255,255,0.12)"}`, color: playing?"#ff3c7e":"rgba(255,255,255,0.8)", cursor: !previewVideo?"not-allowed":"pointer", opacity: !previewVideo?0.4:1 }}>
+                    ▶ Play
+                  </button>
+                  <button onClick={handleStop} disabled={!previewVideo}
+                    style={{ padding:"7px 20px", borderRadius:7, fontSize:12, fontWeight:600, background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.8)", cursor: !previewVideo?"not-allowed":"pointer", opacity: !previewVideo?0.4:1 }}>
+                    ■ Stop
+                  </button>
                 </div>
+                {previewVideo && (
+                  <div style={{ textAlign:"center", fontSize:10, color:"rgba(255,255,255,0.25)", marginTop:8 }}>{previewVideo.name}</div>
+                )}
               </div>
 
             </div>{/* end right */}
