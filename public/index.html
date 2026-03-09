@@ -1,718 +1,1005 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reel Maker</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;background:#0d0d18;color:#fff;font-family:'DM Sans','Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-    input,textarea,button,select{font-family:inherit}
-    input[type="range"]{accent-color:#ff3c7e;cursor:pointer}
-    textarea{resize:vertical}
-    ::-webkit-scrollbar{width:6px}
-    ::-webkit-scrollbar-track{background:#0d0d18}
-    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:999px}
-    .rhandle{position:absolute;width:10px;height:10px;background:#ff3c7e;border:2px solid #fff;border-radius:2px;z-index:30}
-    .rse{bottom:-5px;right:-5px;cursor:se-resize}
-    .rsw{bottom:-5px;left:-5px;cursor:sw-resize}
-    .rne{top:-5px;right:-5px;cursor:ne-resize}
-    .rnw{top:-5px;left:-5px;cursor:nw-resize}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Reel Maker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d18;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+input,textarea,button,select{font-family:inherit}
+input[type=range]{-webkit-appearance:none;height:4px;border-radius:999px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#ff3c7e;cursor:pointer;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.5)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#0d0d18}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px}
+.rh{position:absolute;width:12px;height:12px;background:#ff3c7e;border:2px solid #fff;border-radius:2px;z-index:100;touch-action:none}
+.rh-se{bottom:-6px;right:-6px;cursor:se-resize}
+.rh-sw{bottom:-6px;left:-6px;cursor:sw-resize}
+.rh-ne{top:-6px;right:-6px;cursor:ne-resize}
+.rh-nw{top:-6px;left:-6px;cursor:nw-resize}
+.canvas-el{position:absolute;touch-action:none;cursor:move}
+.canvas-el.selected{outline:2px solid #ff3c7e;outline-offset:1px}
+</style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useRef,useEffect,useCallback} = React;
+<div id="app"></div>
 
-/* ─── constants ─── */
-const NICHES=["Lifestyle","Fitness","Food","Travel","Fashion","Beauty","Business","Tech"];
-const TEXT_STYLES=[
-  {id:"bold",  label:"BOLD",  sub:"BOLD",    fw:900,color:"#fff"},
-  {id:"stroke",label:"STROKE",sub:"OUTLINED",fw:700,color:"#ff3c7e"},
-  {id:"pill",  label:"PILL",  sub:"PILL",    fw:700,color:"#fff",pill:true},
-  {id:"shadow",label:"SHADOW",sub:"SHADOW",  fw:900,color:"#ff3c7e",shadow:true},
-  {id:"grad",  label:"GRAD",  sub:"GRADIENT",fw:900,grad:true},
-  {id:"clean", label:"clean", sub:"CLEAN",   fw:400,color:"#fff"},
-];
-const ACCENT_MAP={Pink:"#ff3c7e",Purple:"#a855f7",Cyan:"#06b6d4",Gold:"#f59e0b",Green:"#22c55e",White:"#ffffff"};
-const OVERLAY_LIST=[
-  {id:"vignette",label:"Vignette",icon:"🌑"},
-  {id:"bars",label:"Cinematic Black Bars",icon:"🎬"},
-  {id:"grain",label:"Film Grain",icon:"📽️"},
-  {id:"blur",label:"Edge Blur",icon:"🔆"},
-];
-const EMOJIS=["⬛","🔥","✨","💯","🙌","💪","🎉","☀️","👏","↩️","😎","🤩","🌸","🦋","🎵","🧚","🏆","👑","💎","🌈","▶️","🧿","🌊","🎯","🌴","🎮","💡"];
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let state = {
+  clips: [],
+  canvasEls: [],
+  selectedEl: null,
+  caption: '',
+  handle: '',
+  brief: '',
+  niche: 'Lifestyle',
+  textStyle: 'bold',
+  fontSize: 46,
+  accentColor: 'Pink',
+  overlays: { vignette: false, bars: false, grain: false, blur: false },
+  overlayOpacity: { vignette: 0.7, bars: 1, grain: 0.5, blur: 0.5 },
+  playing: false,
+  volume: 1,
+  muted: false,
+  audioFile: null,
+  audioUrl: null,
+  emojiInput: '',
+  emojiSize: 64,
+  exportFormat: 'MP4',
+  exportQuality: '1080p',
+  exportRatio: '9:16',
+  exportFps: '30fps',
+  exporting: false,
+  exportProgress: 0,
+  exportDone: false,
+  apiKey: '',
+  showApiKey: false,
+  generatedCaption: '',
+  generating: false,
+};
 
-/* ─── tiny shared styles ─── */
-const card={background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"20px 22px",marginBottom:14};
-const pBtn=(on,col)=>({padding:"5px 14px",borderRadius:999,fontSize:12,fontWeight:500,cursor:"pointer",border:`1px solid ${on?col:"rgba(255,255,255,0.12)"}`,background:on?col+"22":"transparent",color:on?col:"rgba(255,255,255,0.6)",transition:"all .15s"});
+let videoEl = null;
+let audioEl = null;
 
-function Label({children,mt}){return <div style={{fontSize:10,letterSpacing:"0.12em",color:"rgba(255,255,255,0.4)",textTransform:"uppercase",marginBottom:8,marginTop:mt||0}}>{children}</div>}
-function SecHead({num,title}){return(
-  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-    <div style={{width:24,height:24,borderRadius:"50%",background:"linear-gradient(135deg,#ff3c7e,#a855f7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#fff",flexShrink:0}}>{num}</div>
-    <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.15em",color:"rgba(255,255,255,0.55)",textTransform:"uppercase"}}>{title}</span>
-  </div>
-)}
-function Toggle({on,onToggle}){return(
-  <div onClick={onToggle} style={{width:42,height:24,borderRadius:999,cursor:"pointer",background:on?"linear-gradient(90deg,#ff3c7e,#a855f7)":"rgba(255,255,255,0.1)",position:"relative",transition:"background .2s",flexShrink:0}}>
-    <div style={{position:"absolute",top:3,left:on?21:3,width:18,height:18,borderRadius:"50%",background:"#fff",transition:"left .2s",boxShadow:"0 1px 4px rgba(0,0,0,0.4)"}}/>
-  </div>
-)}
-function DashedUpload({icon,label,sub,onClick}){
-  const [hov,setHov]=useState(false);
-  return(
-    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{flex:1,border:`1.5px dashed ${hov?"#ff3c7e":"rgba(255,255,255,0.15)"}`,borderRadius:10,padding:"24px 12px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,cursor:"pointer",background:hov?"rgba(255,60,126,0.05)":"transparent",transition:"all .2s"}}>
-      <span style={{fontSize:26}}>{icon}</span>
-      <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.8)"}}>{label}</span>
-      <span style={{fontSize:10,color:"rgba(255,255,255,0.35)",letterSpacing:"0.08em"}}>{sub}</span>
-    </div>
-  );
+function setState(patch) {
+  Object.assign(state, typeof patch === 'function' ? patch(state) : patch);
+  render();
 }
 
-/* ─── Draggable + Resizable canvas element ─── */
-function CanvasEl({el,selected,onSelect,onChange,onDelete,bounds}){
-  const ref=useRef(null);
-  const drag=useRef(null);
-  const resize=useRef(null);
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const ACCENT_MAP = {Pink:'#ff3c7e',Purple:'#a855f7',Cyan:'#06b6d4',Gold:'#f59e0b',Green:'#22c55e',White:'#ffffff'};
+const NICHES = ['Lifestyle','Fitness','Food','Travel','Fashion','Beauty','Business','Tech'];
+const EMOJIS = ['⬛','🔥','✨','💯','🙌','💪','🎉','☀️','👏','↩️','😎','🤩','🌸','🦋','🎵','🧚','🏆','👑','💎','🌈','▶️','🧿','🌊','🎯','🌴','🎮','💡'];
+const TEXT_STYLES = [
+  {id:'bold',label:'BOLD',fw:900,color:'#fff'},
+  {id:'stroke',label:'STROKE',fw:700,color:'#ff3c7e'},
+  {id:'pill',label:'PILL',fw:700,color:'#fff',pill:true},
+  {id:'shadow',label:'SHADOW',fw:900,color:'#ff3c7e',shadow:true},
+  {id:'grad',label:'GRAD',fw:900,grad:true},
+  {id:'clean',label:'clean',fw:400,color:'#fff'},
+];
+const CANVAS_W = 220, CANVAS_H = 390;
 
-  // pointer events so we capture outside canvas too
-  useEffect(()=>{
-    const onMove=(e)=>{
-      const cx=e.clientX??e.touches?.[0]?.clientX;
-      const cy=e.clientY??e.touches?.[0]?.clientY;
-      if(drag.current){
-        const dx=cx-drag.current.sx;
-        const dy=cy-drag.current.sy;
-        const nx=Math.max(0,Math.min(bounds.w-el.w, drag.current.ox+dx));
-        const ny=Math.max(0,Math.min(bounds.h-el.h, drag.current.oy+dy));
-        onChange({...el,x:nx,y:ny});
-      }
-      if(resize.current){
-        const dx=cx-resize.current.sx;
-        const dy=cy-resize.current.sy;
-        const dir=resize.current.dir;
-        let {ox,oy,ow,oh}=resize.current;
-        let nw=ow,nh=oh,nx=ox,ny=oy;
-        if(dir.includes("e")) nw=Math.max(40,ow+dx);
-        if(dir.includes("s")) nh=Math.max(40,oh+dy);
-        if(dir.includes("w")){nw=Math.max(40,ow-dx);nx=ox+ow-nw;}
-        if(dir.includes("n")){nh=Math.max(40,oh-dy);ny=oy+oh-nh;}
-        onChange({...el,x:nx,y:ny,w:nw,h:nh});
-      }
-    };
-    const onUp=()=>{drag.current=null;resize.current=null;};
-    window.addEventListener("mousemove",onMove);
-    window.addEventListener("mouseup",onUp);
-    window.addEventListener("touchmove",onMove,{passive:false});
-    window.addEventListener("touchend",onUp);
-    return()=>{
-      window.removeEventListener("mousemove",onMove);
-      window.removeEventListener("mouseup",onUp);
-      window.removeEventListener("touchmove",onMove);
-      window.removeEventListener("touchend",onUp);
-    };
-  },[el,bounds,onChange]);
+// ── DRAG + RESIZE ──────────────────────────────────────────────────────────
+let dragState = null;
 
-  const startDrag=(e)=>{
-    e.stopPropagation();
-    onSelect();
-    const cx=e.clientX??e.touches?.[0]?.clientX;
-    const cy=e.clientY??e.touches?.[0]?.clientY;
-    drag.current={sx:cx,sy:cy,ox:el.x,oy:el.y};
-  };
-  const startResize=(e,dir)=>{
-    e.stopPropagation();
-    e.preventDefault();
-    const cx=e.clientX??e.touches?.[0]?.clientX;
-    const cy=e.clientY??e.touches?.[0]?.clientY;
-    resize.current={sx:cx,sy:cy,ox:el.x,oy:el.y,ow:el.w,oh:el.h,dir};
-  };
-
-  const content=()=>{
-    if(el.kind==="pip")  return <img src={el.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:4,pointerEvents:"none"}}/>;
-    if(el.kind==="emoji") return <span style={{fontSize:el.h*0.7,lineHeight:1,userSelect:"none"}}>{el.label}</span>;
-    if(el.kind==="shape"){
-      const isCirc=el.label==="Circle";
-      return <div style={{width:"100%",height:"100%",background:"rgba(255,60,126,0.35)",border:"2px solid #ff3c7e",borderRadius:isCirc?"50%":6}}/>;
-    }
-    if(el.kind==="caption") return(
-      <div style={{fontSize:el.h*0.4,fontWeight:700,color:el.color||"#ff3c7e",textShadow:"1px 1px 4px rgba(0,0,0,0.8)",whiteSpace:"nowrap",userSelect:"none",lineHeight:1}}>
-        {el.label}
-      </div>
-    );
-    return null;
-  };
-
-  return(
-    <div ref={ref}
-      onMouseDown={startDrag}
-      onTouchStart={startDrag}
-      style={{position:"absolute",left:el.x,top:el.y,width:el.w,height:el.h,cursor:"move",
-        outline:selected?"2px solid #ff3c7e":"none",
-        outlineOffset:1,zIndex:selected?15:10,
-        display:"flex",alignItems:"center",justifyContent:"center",
-      }}>
-      {content()}
-      {selected&&<>
-        <div className="rhandle rse" onMouseDown={e=>startResize(e,"se")} onTouchStart={e=>startResize(e,"se")}/>
-        <div className="rhandle rsw" onMouseDown={e=>startResize(e,"sw")} onTouchStart={e=>startResize(e,"sw")}/>
-        <div className="rhandle rne" onMouseDown={e=>startResize(e,"ne")} onTouchStart={e=>startResize(e,"ne")}/>
-        <div className="rhandle rnw" onMouseDown={e=>startResize(e,"nw")} onTouchStart={e=>startResize(e,"nw")}/>
-        <button onMouseDown={e=>e.stopPropagation()} onClick={onDelete}
-          style={{position:"absolute",top:-10,right:-10,width:20,height:20,borderRadius:"50%",background:"#ef4444",border:"2px solid #fff",color:"#fff",fontSize:10,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",zIndex:31}}>×</button>
-      </>}
-    </div>
-  );
+function startDrag(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  const el = state.canvasEls.find(e => e.id === id);
+  if (!el) return;
+  setState({ selectedEl: id });
+  const cx = e.clientX ?? e.touches?.[0]?.clientX;
+  const cy = e.clientY ?? e.touches?.[0]?.clientY;
+  dragState = { type: 'drag', id, sx: cx, sy: cy, ox: el.x, oy: el.y };
 }
 
-/* ═══════════════ MAIN APP ═══════════════ */
-function App(){
-  /* clips */
-  const [clips,setClips]=useState([]);
-  /* form */
-  const [brief,setBrief]=useState("");
-  const [niche,setNiche]=useState("Lifestyle");
-  const [caption,setCaption]=useState("");
-  const [handle,setHandle]=useState("");
-  /* text style */
-  const [textStyle,setTextStyle]=useState("bold");
-  const [fontSize,setFontSize]=useState(46);
-  const [accentColor,setAccentColor]=useState("Pink");
-  /* overlays */
-  const [activeOverlays,setActiveOverlays]=useState({});
-  /* emoji */
-  const [emojiInput,setEmojiInput]=useState("");
-  const [emojiSize,setEmojiSize]=useState(64);
-  /* canvas elements (pip, emoji, shapes, captions) */
-  const [canvasEls,setCanvasEls]=useState([]);
-  const [selectedEl,setSelectedEl]=useState(null);
-  /* playback */
-  const [playing,setPlaying]=useState(false);
-  const [volume,setVolume]=useState(1);
-  const [muted,setMuted]=useState(false);
-  /* ai */
-  const [generatedCaption,setGeneratedCaption]=useState("");
-  const [generating,setGenerating]=useState(false);
-  const [apiKey,setApiKey]=useState("");
-  const [showApiKey,setShowApiKey]=useState(false);
-  /* export */
-  const [exportFormat,setExportFormat]=useState("MP4");
-  const [exportQuality,setExportQuality]=useState("1080p");
-  const [exportRatio,setExportRatio]=useState("9:16");
-  const [exportFps,setExportFps]=useState("30fps");
-  const [exporting,setExporting]=useState(false);
-  const [exportProgress,setExportProgress]=useState(0);
-  const [exportDone,setExportDone]=useState(false);
+function startResize(e, id, dir) {
+  e.preventDefault();
+  e.stopPropagation();
+  const el = state.canvasEls.find(e => e.id === id);
+  if (!el) return;
+  const cx = e.clientX ?? e.touches?.[0]?.clientX;
+  const cy = e.clientY ?? e.touches?.[0]?.clientY;
+  dragState = { type: 'resize', id, dir, sx: cx, sy: cy, ox: el.x, oy: el.y, ow: el.w, oh: el.h };
+}
 
-  const videoInputRef=useRef(null);
-  const imageInputRef=useRef(null);
-  const pipInputRef=useRef(null);
-  const previewVideoRef=useRef(null);
-  const canvasRef=useRef(null);
+document.addEventListener('mousemove', onPointerMove);
+document.addEventListener('touchmove', onPointerMove, { passive: false });
+document.addEventListener('mouseup', onPointerUp);
+document.addEventListener('touchend', onPointerUp);
 
-  /* canvas bounds (200×360 phone) */
-  const CANVAS={w:200,h:360};
+function onPointerMove(e) {
+  if (!dragState) return;
+  if (e.cancelable) e.preventDefault();
+  const cx = e.clientX ?? e.touches?.[0]?.clientX;
+  const cy = e.clientY ?? e.touches?.[0]?.clientY;
+  const dx = cx - dragState.sx;
+  const dy = cy - dragState.sy;
 
-  const addClips=(files,type)=>{
-    const nc=files.map(f=>({id:Date.now()+Math.random(),name:f.name,url:URL.createObjectURL(f),duration:type==="VID"?"8.0s":"5.0s",type}));
-    setClips(p=>[...p,...nc]);
-  };
-  const removeClip=id=>setClips(p=>p.filter(c=>c.id!==id));
+  setState(s => ({
+    canvasEls: s.canvasEls.map(el => {
+      if (el.id !== dragState.id) return el;
+      if (dragState.type === 'drag') {
+        return { ...el,
+          x: Math.max(0, Math.min(CANVAS_W - el.w, dragState.ox + dx)),
+          y: Math.max(0, Math.min(CANVAS_H - el.h, dragState.oy + dy))
+        };
+      }
+      if (dragState.type === 'resize') {
+        const dir = dragState.dir;
+        let nx=dragState.ox, ny=dragState.oy, nw=dragState.ow, nh=dragState.oh;
+        if (dir.includes('e')) nw = Math.max(30, dragState.ow + dx);
+        if (dir.includes('s')) nh = Math.max(20, dragState.oh + dy);
+        if (dir.includes('w')) { nw = Math.max(30, dragState.ow - dx); nx = dragState.ox + dragState.ow - nw; }
+        if (dir.includes('n')) { nh = Math.max(20, dragState.oh - dy); ny = dragState.oy + dragState.oh - nh; }
+        return { ...el, x: nx, y: ny, w: nw, h: nh };
+      }
+      return el;
+    })
+  }));
+}
 
-  /* apply volume to video */
-  useEffect(()=>{
-    if(previewVideoRef.current){
-      previewVideoRef.current.volume=volume;
-      previewVideoRef.current.muted=muted;
-    }
-  },[volume,muted]);
+function onPointerUp() { dragState = null; }
 
-  const handlePlay=()=>{if(previewVideoRef.current){previewVideoRef.current.play();setPlaying(true);}};
-  const handleStop=()=>{if(previewVideoRef.current){previewVideoRef.current.pause();previewVideoRef.current.currentTime=0;setPlaying(false);}};
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function uid() { return Date.now() + Math.random(); }
 
-  const addPip=(file)=>{
-    const url=URL.createObjectURL(file);
-    const id=Date.now()+Math.random();
-    setCanvasEls(p=>[...p,{id,kind:"pip",label:file.name,url,x:20,y:20,w:80,h:80,visible:true}]);
-  };
-  const addEmoji=(em)=>{
-    const id=Date.now()+Math.random();
-    setCanvasEls(p=>[...p,{id,kind:"emoji",label:em,x:60,y:140,w:emojiSize,h:emojiSize,visible:true}]);
-    setSelectedEl(id);
-  };
-  const addShape=(sh)=>{
-    const id=Date.now()+Math.random();
-    setCanvasEls(p=>[...p,{id,kind:"shape",label:sh,x:40,y:120,w:100,h:60,visible:true}]);
-    setSelectedEl(id);
-  };
-  const updateEl=(el)=>setCanvasEls(p=>p.map(e=>e.id===el.id?el:e));
-  const deleteEl=(id)=>{setCanvasEls(p=>p.filter(e=>e.id!==id));setSelectedEl(null);};
-  const toggleLayerVis=(id)=>setCanvasEls(p=>p.map(e=>e.id===id?{...e,visible:!e.visible}:e));
-  const toggleOverlay=id=>setActiveOverlays(p=>({...p,[id]:!p[id]}));
+function addCanvasEl(kind, props) {
+  const id = uid();
+  const el = { id, kind, visible: true, opacity: 1, x: 30, y: 80, w: 100, h: 80, ...props };
+  setState(s => ({ canvasEls: [...s.canvasEls, el], selectedEl: id }));
+}
 
-  /* add caption as draggable element */
-  const addCaptionEl=()=>{
-    if(!caption) return;
-    const id=Date.now()+Math.random();
-    setCanvasEls(p=>[...p,{id,kind:"caption",label:caption,color:ACCENT_MAP[accentColor]||"#ff3c7e",x:10,y:280,w:180,h:40,visible:true}]);
-    setSelectedEl(id);
-  };
+function updateEl(id, patch) {
+  setState(s => ({ canvasEls: s.canvasEls.map(e => e.id === id ? { ...e, ...patch } : e) }));
+}
 
-  const generateCaptions=async()=>{
-    if(!apiKey){setShowApiKey(true);return;}
-    setGenerating(true);setGeneratedCaption("");
-    try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",
-        headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:800,messages:[{role:"user",content:`Generate 3 short punchy social media reel captions for a ${niche} reel about "${brief||"general content"}". Each 1-2 lines, engaging, with emojis. Numbered list.`}]})
+function deleteEl(id) {
+  setState(s => ({ canvasEls: s.canvasEls.filter(e => e.id !== id), selectedEl: s.selectedEl === id ? null : s.selectedEl }));
+}
+
+function addClip(files, type) {
+  const newClips = Array.from(files).map(f => ({
+    id: uid(), name: f.name, url: URL.createObjectURL(f), type,
+    trimStart: 0, trimEnd: null, duration: null
+  }));
+  setState(s => ({ clips: [...s.clips, ...newClips] }));
+  if (type === 'VID' && newClips.length > 0) {
+    setTimeout(() => {
+      const v = document.getElementById('preview-video');
+      if (v) {
+        v.onloadedmetadata = () => {
+          setState(s => ({
+            clips: s.clips.map(c => c.id === newClips[0].id ? { ...c, trimEnd: v.duration, duration: v.duration } : c)
+          }));
+        };
+      }
+    }, 300);
+  }
+}
+
+// ── AUDIO ──────────────────────────────────────────────────────────────────
+function handleAudioUpload(file) {
+  const url = URL.createObjectURL(file);
+  setState({ audioFile: file.name, audioUrl: url });
+  if (audioEl) { audioEl.src = url; }
+}
+
+// ── VIDEO CONTROLS ─────────────────────────────────────────────────────────
+function syncVolume() {
+  const v = document.getElementById('preview-video');
+  if (v) { v.volume = state.volume; v.muted = state.muted; }
+  if (audioEl) { audioEl.volume = state.volume; audioEl.muted = state.muted; }
+}
+
+function playAll() {
+  const v = document.getElementById('preview-video');
+  syncVolume();
+  if (v) v.play();
+  if (audioEl && state.audioUrl) audioEl.play();
+  setState({ playing: true });
+}
+
+function stopAll() {
+  const v = document.getElementById('preview-video');
+  if (v) { v.pause(); v.currentTime = state.clips.find(c=>c.type==='VID')?.trimStart || 0; }
+  if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
+  setState({ playing: false });
+}
+
+// ── AI CAPTIONS ────────────────────────────────────────────────────────────
+async function generateCaptions() {
+  if (!state.apiKey) { setState({ showApiKey: true }); return; }
+  setState({ generating: true, generatedCaption: '' });
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': state.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800,
+        messages: [{ role: 'user', content: `Generate 3 short punchy social media reel captions for a ${state.niche} reel about "${state.brief || 'general content'}". Each 1-2 lines with emojis. Numbered list.` }] })
+    });
+    const data = await res.json();
+    setState({ generatedCaption: data.content?.find(b => b.type === 'text')?.text || 'No captions returned.' });
+  } catch(err) { setState({ generatedCaption: 'Error: ' + err.message }); }
+  setState({ generating: false });
+}
+
+// ── EXPORT ─────────────────────────────────────────────────────────────────
+function startExport() {
+  setState({ exporting: true, exportDone: false, exportProgress: 0 });
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random() * 12 + 4;
+    if (p >= 100) { clearInterval(iv); setState({ exportProgress: 100 }); setTimeout(() => setState({ exporting: false, exportDone: true }), 400); }
+    else setState({ exportProgress: Math.round(p) });
+  }, 220);
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  app.appendChild(buildUI());
+  // re-attach video ref
+  const v = document.getElementById('preview-video');
+  if (v) { v.volume = state.volume; v.muted = state.muted; }
+  // audio
+  if (!audioEl && state.audioUrl) {
+    audioEl = new Audio(state.audioUrl);
+    audioEl.volume = state.volume;
+    audioEl.muted = state.muted;
+  }
+}
+
+// ── CANVAS ELEMENTS render (DOM, not innerHTML) ────────────────────────────
+function makeCanvasEl(el) {
+  const div = document.createElement('div');
+  div.className = 'canvas-el' + (state.selectedEl === el.id ? ' selected' : '');
+  div.style.cssText = `left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;opacity:${el.opacity};z-index:${state.selectedEl===el.id?15:10};display:flex;align-items:center;justify-content:center;`;
+
+  // content
+  if (el.kind === 'pip') {
+    const img = document.createElement('img');
+    img.src = el.url;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none;';
+    div.appendChild(img);
+  } else if (el.kind === 'emoji') {
+    const span = document.createElement('span');
+    span.textContent = el.label;
+    span.style.cssText = `font-size:${el.h*0.7}px;line-height:1;user-select:none;pointer-events:none;`;
+    div.appendChild(span);
+  } else if (el.kind === 'shape') {
+    const inner = document.createElement('div');
+    const isCirc = el.label === 'Circle';
+    inner.style.cssText = `width:100%;height:100%;background:${el.fill||'rgba(255,60,126,0.4)'};border:2px solid ${el.stroke||'#ff3c7e'};border-radius:${isCirc?'50%':'8px'};pointer-events:none;`;
+    div.appendChild(inner);
+  } else if (el.kind === 'caption') {
+    const span = document.createElement('span');
+    span.textContent = el.label;
+    span.style.cssText = `font-size:${Math.max(10,el.h*0.45)}px;font-weight:700;color:${el.color||'#ff3c7e'};text-shadow:1px 1px 4px rgba(0,0,0,0.9);user-select:none;pointer-events:none;white-space:nowrap;`;
+    div.appendChild(span);
+  }
+
+  // drag
+  div.addEventListener('mousedown', e => startDrag(e, el.id));
+  div.addEventListener('touchstart', e => startDrag(e, el.id), { passive: false });
+
+  // resize handles
+  if (state.selectedEl === el.id) {
+    [['se','rh-se'],['sw','rh-sw'],['ne','rh-ne'],['nw','rh-nw']].forEach(([dir,cls]) => {
+      const h = document.createElement('div');
+      h.className = `rh ${cls}`;
+      h.addEventListener('mousedown', e => startResize(e, el.id, dir));
+      h.addEventListener('touchstart', e => startResize(e, el.id, dir), { passive: false });
+      div.appendChild(h);
+    });
+    // delete btn
+    const del = document.createElement('button');
+    del.textContent = '×';
+    del.style.cssText = 'position:absolute;top:-10px;right:-10px;width:20px;height:20px;border-radius:50%;background:#ef4444;border:2px solid #fff;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101;';
+    del.addEventListener('mousedown', e => { e.stopPropagation(); deleteEl(el.id); });
+    div.appendChild(del);
+  }
+
+  return div;
+}
+
+// ── TRIM SLIDER ────────────────────────────────────────────────────────────
+function makeTrimSlider(clip) {
+  const dur = clip.duration || 60;
+  const trimEnd = clip.trimEnd ?? dur;
+  const div = document.createElement('div');
+  div.style.cssText = 'margin-top:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;';
+  div.innerHTML = `
+    <div style="font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;">✂ Trim: ${clip.trimStart.toFixed(1)}s → ${trimEnd.toFixed(1)}s</div>
+    <div style="margin-bottom:6px;">
+      <label style="font-size:10px;color:rgba(255,255,255,0.4);">Start</label>
+      <input type="range" min="0" max="${dur}" step="0.1" value="${clip.trimStart}" style="width:100%;background:linear-gradient(to right,#ff3c7e ${clip.trimStart/dur*100}%,rgba(255,255,255,0.15) 0)" id="trim-start-${clip.id}"/>
+    </div>
+    <div>
+      <label style="font-size:10px;color:rgba(255,255,255,0.4);">End</label>
+      <input type="range" min="0" max="${dur}" step="0.1" value="${trimEnd}" style="width:100%;background:linear-gradient(to right,#a855f7 ${trimEnd/dur*100}%,rgba(255,255,255,0.15) 0)" id="trim-end-${clip.id}"/>
+    </div>`;
+  setTimeout(() => {
+    const s = document.getElementById(`trim-start-${clip.id}`);
+    const e2 = document.getElementById(`trim-end-${clip.id}`);
+    if (s) s.addEventListener('input', ev => {
+      const val = Math.min(+ev.target.value, (clip.trimEnd ?? dur) - 0.5);
+      setState(st => ({ clips: st.clips.map(c => c.id === clip.id ? { ...c, trimStart: val } : c) }));
+      const v = document.getElementById('preview-video');
+      if (v) v.currentTime = val;
+    });
+    if (e2) e2.addEventListener('input', ev => {
+      const val = Math.max(+ev.target.value, clip.trimStart + 0.5);
+      setState(st => ({ clips: st.clips.map(c => c.id === clip.id ? { ...c, trimEnd: val } : c) }));
+    });
+  }, 0);
+  return div;
+}
+
+// ── BUILD UI ───────────────────────────────────────────────────────────────
+function buildUI() {
+  const root = document.createElement('div');
+  root.style.cssText = 'min-height:100vh;background:#0d0d18;';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'text-align:center;padding:36px 20px 24px;';
+  hdr.innerHTML = `<h1 style="font-size:clamp(36px,7vw,64px);font-weight:900;letter-spacing:-.02em;line-height:1;"><span style="color:#ff3c7e">REEL </span><span style="color:#fff">MAKER</span></h1><p style="font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,0.35);margin-top:10px;text-transform:uppercase;">SEQUENCE · STYLE · OVERLAY · DOWNLOAD</p>`;
+  root.appendChild(hdr);
+
+  // API key banner
+  if (state.showApiKey) {
+    const banner = el('div','','max-width:1200px;margin:0 auto 16px;padding:0 20px;');
+    const inner = el('div','','background:rgba(255,60,126,0.08);border:1px solid rgba(255,60,126,0.25);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;');
+    inner.innerHTML = `<span style="font-size:13px;color:rgba(255,255,255,0.7);flex:1;">🔑 Anthropic API key for AI captions:</span>`;
+    const inp = input('password', state.apiKey, v => setState({ apiKey: v }), 'sk-ant-...', 'flex:0 0 280px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,60,126,0.3);border-radius:7px;color:#fff;font-size:13px;padding:8px 12px;outline:none;');
+    const btn = button('Save','padding:8px 16px;border-radius:7px;background:#ff3c7e;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;', () => setState({ showApiKey: false }));
+    inner.appendChild(inp); inner.appendChild(btn);
+    banner.appendChild(inner); root.appendChild(banner);
+  }
+
+  // Main layout
+  const main = el('div','','display:flex;gap:16px;padding:0 20px 60px;max-width:1200px;margin:0 auto;align-items:flex-start;');
+
+  // ── LEFT ──
+  const left = el('div','','flex:0 0 540px;min-width:0;');
+
+  // 1. Media
+  left.appendChild(makeSection('1','Media Sequence', () => {
+    const wrap = document.createElement('div');
+    const row = el('div','','display:flex;gap:10px;margin-bottom:16px;');
+    row.appendChild(makeUploadBox('🎬','Add Video(s)','MP4 · MOV · WebM','video/*',true,files => addClip(files,'VID')));
+    row.appendChild(makeUploadBox('🖼️','Add Image(s)','JPG · PNG · WebP','image/*',true,files => addClip(files,'IMG')));
+    wrap.appendChild(row);
+
+    if (state.clips.length > 0) {
+      const bar = el('div','','display:flex;justify-content:space-between;margin-bottom:8px;');
+      bar.innerHTML = `<span style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.35);text-transform:uppercase;">Playback Order</span><span style="font-size:10px;color:rgba(255,255,255,0.25);">click × to remove</span>`;
+      wrap.appendChild(bar);
+      const thumbs = el('div','','display:flex;gap:8px;flex-wrap:wrap;');
+      state.clips.forEach(clip => {
+        const card2 = el('div','','position:relative;');
+        const box = el('div','','width:72px;height:72px;border-radius:8px;overflow:hidden;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);');
+        if (clip.type === 'IMG') {
+          const img = document.createElement('img');
+          img.src = clip.url; img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          box.appendChild(img);
+        } else {
+          const v = document.createElement('video');
+          v.src = clip.url; v.muted = true; v.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          box.appendChild(v);
+        }
+        card2.appendChild(box);
+        const badge = el('div','','position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.7);border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;');
+        badge.style.color = clip.type==='VID'?'#60a5fa':'#a78bfa';
+        badge.textContent = clip.type;
+        card2.appendChild(badge);
+        const xbtn = el('button','','position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;');
+        xbtn.textContent='×'; xbtn.onclick = () => setState(s => ({ clips: s.clips.filter(c => c.id!==clip.id) }));
+        card2.appendChild(xbtn);
+        const dur = el('div','','text-align:center;font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;');
+        dur.textContent = clip.duration ? clip.duration.toFixed(1)+'s' : (clip.type==='VID'?'...':'5.0s');
+        card2.appendChild(dur);
+        thumbs.appendChild(card2);
+        // trim for videos
+        if (clip.type === 'VID') card2.appendChild(makeTrimSlider(clip));
       });
-      const data=await res.json();
-      setGeneratedCaption(data.content?.find(b=>b.type==="text")?.text||"No captions returned.");
-    }catch(err){setGeneratedCaption("Error: "+err.message);}
-    setGenerating(false);
-  };
+      wrap.appendChild(thumbs);
+      const total = el('div','','margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);');
+      total.textContent = `${state.clips.length} clip${state.clips.length!==1?'s':''} total`;
+      wrap.appendChild(total);
+    }
+    return wrap;
+  }));
 
-  const startExport=()=>{
-    setExporting(true);setExportDone(false);setExportProgress(0);
-    let p=0;
-    const iv=setInterval(()=>{
-      p+=Math.random()*12+4;
-      if(p>=100){clearInterval(iv);setExportProgress(100);setTimeout(()=>{setExporting(false);setExportDone(true);},400);}
-      else setExportProgress(Math.round(p));
-    },220);
-  };
+  // PiP
+  left.appendChild(makeSection('↗','Picture-in-Picture', () => {
+    const wrap = document.createElement('div');
+    wrap.appendChild(makeUploadBox('🖼️+','Add overlay image','Drops into preview — drag & resize freely','image/*',false,files => {
+      const f = files[0]; if (!f) return;
+      const url = URL.createObjectURL(f);
+      addCanvasEl('pip', { label: f.name, url, x: 20, y: 20, w: 90, h: 90 });
+    }));
+    const count = state.canvasEls.filter(e=>e.kind==='pip').length;
+    if (count > 0) {
+      const note = el('div','','margin-top:8px;font-size:11px;color:rgba(255,255,255,0.4);');
+      note.textContent = `${count} overlay image${count>1?'s':''} · click in preview to select & resize`;
+      wrap.appendChild(note);
+    }
+    return wrap;
+  }));
 
-  const previewVideo=clips.find(c=>c.type==="VID")||null;
-  const previewImg=clips.find(c=>c.type==="IMG")||null;
-  const activeTS=TEXT_STYLES.find(t=>t.id===textStyle);
+  // 2. Caption Brief
+  left.appendChild(makeSection('2','Caption Brief', () => {
+    const wrap = document.createElement('div');
+    wrap.appendChild(label('What\'s your reel about?'));
+    wrap.appendChild(textarea(state.brief, v => setState({ brief: v }), 'e.g. food, fitness tips...'));
+    wrap.appendChild(label('Niche', 14));
+    const niches = el('div','','display:flex;flex-wrap:wrap;gap:6px;');
+    NICHES.forEach(n => {
+      const b = pillButton(n, state.niche===n, '#ff3c7e', () => setState({ niche: n }));
+      niches.appendChild(b);
+    });
+    wrap.appendChild(niches);
+    wrap.appendChild(label('Caption Text', 14));
+    const crow = el('div','','display:flex;gap:8px;');
+    crow.appendChild(input('text', state.caption, v => setState({ caption: v }), 'Your caption here...', 'flex:1;'));
+    const addBtn = button('+','padding:0 14px;border-radius:8px;background:rgba(255,60,126,0.15);border:1px solid #ff3c7e;color:#ff3c7e;font-size:18px;cursor:pointer;', () => {
+      if (state.caption) addCanvasEl('caption', { label: state.caption, color: ACCENT_MAP[state.accentColor]||'#ff3c7e', x:10, y:300, w:200, h:36 });
+    });
+    addBtn.title = 'Add caption to preview as draggable element';
+    crow.appendChild(addBtn);
+    wrap.appendChild(crow);
+    wrap.appendChild(label('Handle', 12));
+    wrap.appendChild(input('text', state.handle, v => setState({ handle: v }), '@yourhandle'));
+    return wrap;
+  }));
 
-  /* all layers = canvas elements + base clips */
-  const allLayers=[
-    ...clips.map(c=>({id:c.id,label:c.name,kind:c.type==="VID"?"video":"image",visible:true,isClip:true})),
-    ...canvasEls,
+  // 3. Text Style
+  left.appendChild(makeSection('3','Text Style', () => {
+    const wrap = document.createElement('div');
+    const grid = el('div','','display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;');
+    TEXT_STYLES.forEach(ts => {
+      const b = el('button','','padding:12px 8px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;');
+      b.style.border = state.textStyle===ts.id ? '1.5px solid #ff3c7e' : '1.5px solid rgba(255,255,255,0.1)';
+      b.style.background = state.textStyle===ts.id ? 'rgba(255,60,126,0.1)' : 'rgba(255,255,255,0.03)';
+      const sp = document.createElement('span');
+      sp.style.cssText = `font-size:16px;font-weight:${ts.fw};`;
+      if (ts.grad) { sp.style.background='linear-gradient(90deg,#ff3c7e,#a855f7)'; sp.style.webkitBackgroundClip='text'; sp.style.webkitTextFillColor='transparent'; }
+      else if (ts.pill) { sp.style.background='#ff3c7e'; sp.style.borderRadius='999px'; sp.style.padding='2px 10px'; sp.style.color='#fff'; }
+      else { sp.style.color=ts.color; if (ts.shadow) sp.style.textShadow='3px 3px 0 #000'; }
+      sp.textContent = ts.label;
+      b.appendChild(sp);
+      const sub = el('span','','font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:.1em;');
+      sub.textContent = ts.id.toUpperCase();
+      b.appendChild(sub);
+      b.onclick = () => setState({ textStyle: ts.id });
+      grid.appendChild(b);
+    });
+    wrap.appendChild(grid);
+    wrap.appendChild(label('Font Size'));
+    wrap.appendChild(makeSlider(state.fontSize, 12, 96, v => setState({ fontSize: v }), `${state.fontSize}px`, '#ff3c7e', ['S','XL']));
+    wrap.appendChild(label('Accent Color', 14));
+    const arow = el('div','','display:flex;gap:6px;flex-wrap:wrap;');
+    Object.entries(ACCENT_MAP).forEach(([c,hex]) => arow.appendChild(pillButton(c, state.accentColor===c, hex, () => setState({ accentColor: c }))));
+    wrap.appendChild(arow);
+    return wrap;
+  }));
+
+  // 4. Overlays
+  left.appendChild(makeSection('4','Overlays', () => {
+    const wrap = document.createElement('div');
+    const items = [
+      {id:'vignette',label:'Vignette',icon:'🌑'},
+      {id:'bars',label:'Cinematic Black Bars',icon:'🎬'},
+      {id:'grain',label:'Film Grain',icon:'📽️'},
+      {id:'blur',label:'Edge Blur',icon:'🔆'},
+    ];
+    items.forEach(ov => {
+      const row = el('div','','padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);');
+      const top = el('div','','display:flex;align-items:center;justify-content:space-between;');
+      const lft = el('div','','display:flex;align-items:center;gap:10px;');
+      lft.innerHTML = `<span style="font-size:18px;">${ov.icon}</span><span style="font-size:13px;color:rgba(255,255,255,0.8);">${ov.label}</span>`;
+      top.appendChild(lft);
+      top.appendChild(makeToggle(!!state.overlays[ov.id], () => setState(s => ({ overlays: { ...s.overlays, [ov.id]: !s.overlays[ov.id] } }))));
+      row.appendChild(top);
+      // opacity slider
+      const opRow = el('div','','display:flex;align-items:center;gap:10px;margin-top:8px;');
+      opRow.innerHTML = `<span style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;">Opacity</span>`;
+      const opSlider = makeSlider(state.overlayOpacity[ov.id], 0, 1, v => setState(s => ({ overlayOpacity: { ...s.overlayOpacity, [ov.id]: v } })), `${Math.round(state.overlayOpacity[ov.id]*100)}%`, '#a855f7', null, 0.01);
+      opRow.appendChild(opSlider);
+      row.appendChild(opRow);
+      wrap.appendChild(row);
+    });
+    return wrap;
+  }));
+
+  // 5. Shapes
+  left.appendChild(makeSection('5','Shapes & Covers', () => {
+    const wrap = document.createElement('div');
+    const row = el('div','','display:flex;gap:8px;');
+    ['Rectangle','Circle'].forEach(s => {
+      const b = button((s==='Rectangle'?'▭':'○')+' '+s,'padding:8px 18px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.7);transition:all .15s;',
+        () => addCanvasEl('shape', { label: s, x:40, y:140, w:120, h:s==='Circle'?80:60 }));
+      b.onmouseenter = () => { b.style.borderColor='#ff3c7e'; b.style.color='#fff'; };
+      b.onmouseleave = () => { b.style.borderColor='rgba(255,255,255,0.15)'; b.style.color='rgba(255,255,255,0.7)'; };
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    // selected shape controls
+    const sel = state.canvasEls.find(e => e.id===state.selectedEl && e.kind==='shape');
+    if (sel) {
+      const ctrl = el('div','','margin-top:12px;padding:12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.08);');
+      ctrl.appendChild(label('Shape Opacity'));
+      ctrl.appendChild(makeSlider(sel.opacity??1, 0, 1, v => updateEl(sel.id, { opacity: v }), `${Math.round((sel.opacity??1)*100)}%`, '#ff3c7e', null, 0.01));
+      wrap.appendChild(ctrl);
+    }
+    return wrap;
+  }));
+
+  // 6. Emojis
+  left.appendChild(makeSection('6','Emojis', () => {
+    const wrap = document.createElement('div');
+    const row = el('div','','display:flex;gap:8px;margin-bottom:12px;');
+    const inp = input('text', state.emojiInput, v => setState({ emojiInput: v }), 'Type or paste emoji...', 'flex:1;');
+    row.appendChild(inp);
+    row.appendChild(button('+ Add','padding:9px 16px;background:#ff3c7e;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;',
+      () => { if (state.emojiInput) { addCanvasEl('emoji',{label:state.emojiInput,x:60,y:160,w:state.emojiSize,h:state.emojiSize}); setState({ emojiInput:'' }); } }));
+    wrap.appendChild(row);
+    const grid = el('div','','display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;');
+    EMOJIS.forEach(em => {
+      const b = el('button','','font-size:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;width:36px;height:36px;cursor:pointer;transition:all .12s;');
+      b.textContent = em;
+      b.onmouseenter = () => { b.style.background='rgba(255,60,126,0.15)'; b.style.borderColor='#ff3c7e'; };
+      b.onmouseleave = () => { b.style.background='rgba(255,255,255,0.04)'; b.style.borderColor='rgba(255,255,255,0.08)'; };
+      b.onclick = () => addCanvasEl('emoji',{label:em,x:60,y:160,w:state.emojiSize,h:state.emojiSize});
+      grid.appendChild(b);
+    });
+    wrap.appendChild(grid);
+    wrap.appendChild(label('Size'));
+    wrap.appendChild(makeSlider(state.emojiSize, 16, 128, v => setState({ emojiSize: v }), `${state.emojiSize}px`, '#ff3c7e'));
+    return wrap;
+  }));
+
+  // 7. Voiceover / Audio
+  left.appendChild(makeSection('7','Voiceover / Audio', () => {
+    const wrap = document.createElement('div');
+    const row = el('div','','display:flex;gap:10px;margin-bottom:10px;');
+    // record btn
+    const recBtn = button('🎙️ Record','flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;',
+      () => alert('Recording requires microphone access. Use the Upload Audio option for now.'));
+    recBtn.onmouseenter = () => { recBtn.style.borderColor='#ff3c7e'; recBtn.style.color='#fff'; };
+    recBtn.onmouseleave = () => { recBtn.style.borderColor='rgba(255,255,255,0.1)'; recBtn.style.color='rgba(255,255,255,0.75)'; };
+    row.appendChild(recBtn);
+    // upload audio
+    const uploadAudio = () => {
+      const inp = document.createElement('input');
+      inp.type='file'; inp.accept='audio/*';
+      inp.onchange = e => { if (e.target.files[0]) handleAudioUpload(e.target.files[0]); };
+      inp.click();
+    };
+    const upBtn = button('📁 Upload Audio','flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;', uploadAudio);
+    upBtn.onmouseenter = () => { upBtn.style.borderColor='#f59e0b'; upBtn.style.color='#fff'; };
+    upBtn.onmouseleave = () => { upBtn.style.borderColor='rgba(255,255,255,0.1)'; upBtn.style.color='rgba(255,255,255,0.75)'; };
+    row.appendChild(upBtn);
+    wrap.appendChild(row);
+    if (state.audioFile) {
+      const info = el('div','','padding:8px 12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;font-size:12px;color:#f59e0b;display:flex;align-items:center;justify-content:space-between;');
+      info.innerHTML = `<span>🎵 ${state.audioFile}</span>`;
+      const rmBtn = button('×','background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;', () => {
+        setState({ audioFile:null, audioUrl:null }); audioEl=null;
+      });
+      info.appendChild(rmBtn);
+      wrap.appendChild(info);
+    }
+    return wrap;
+  }));
+
+  // Generate Captions
+  const genBtn = button(state.generating ? '⏳ GENERATING…' : '✦ GENERATE CAPTIONS',
+    `width:100%;padding:16px;border-radius:12px;border:none;background:${state.generating?'rgba(255,60,126,0.4)':'linear-gradient(90deg,#ff3c7e,#a855f7)'};color:#fff;font-size:15px;font-weight:800;letter-spacing:.12em;cursor:${state.generating?'not-allowed':'pointer'};text-transform:uppercase;box-shadow:${state.generating?'none':'0 4px 24px rgba(255,60,126,0.35)'};margin-bottom:14px;`,
+    generateCaptions);
+  genBtn.disabled = state.generating;
+  left.appendChild(genBtn);
+
+  if (state.generatedCaption) {
+    const capBox = el('div','','background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;');
+    capBox.innerHTML = `<div style="font-size:10px;color:rgba(168,85,247,0.8);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">✦ AI Generated Captions</div>`;
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'margin:0;font-size:13px;color:rgba(255,255,255,0.85);white-space:pre-wrap;font-family:inherit;line-height:1.6;';
+    pre.textContent = state.generatedCaption;
+    capBox.appendChild(pre);
+    left.appendChild(capBox);
+  }
+
+  // 8. Export
+  left.appendChild(makeSection('8','Export & Download', () => {
+    const wrap = document.createElement('div');
+    wrap.appendChild(label('Format'));
+    const frow = el('div','','display:flex;gap:8px;margin-bottom:16px;');
+    ['MP4','MOV','GIF'].forEach(f => frow.appendChild(segButton(f, state.exportFormat===f, '#ff3c7e', () => setState({ exportFormat: f }))));
+    wrap.appendChild(frow);
+    wrap.appendChild(label('Quality'));
+    const qrow = el('div','','display:flex;gap:8px;margin-bottom:16px;');
+    ['720p','1080p','4K'].forEach(q => qrow.appendChild(segButton(q+(q==='4K'?' ⭐':''), state.exportQuality===q, '#a855f7', () => setState({ exportQuality: q }))));
+    wrap.appendChild(qrow);
+    const twoCol = el('div','','display:flex;gap:16px;margin-bottom:16px;');
+    const ratioCol = el('div','','flex:1;');
+    ratioCol.appendChild(label('Aspect Ratio'));
+    [['9:16','Reels/TikTok'],['1:1','Square'],['16:9','YouTube']].forEach(([r,hint]) => {
+      const b = el('button','','width:100%;margin-bottom:6px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;');
+      b.style.border = `1.5px solid ${state.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.08)'}`;
+      b.style.background = state.exportRatio===r?'rgba(6,182,212,0.1)':'rgba(255,255,255,0.02)';
+      b.style.color = state.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.5)';
+      const ico = el('div','','flex-shrink:0;');
+      ico.style.cssText = `width:${r==='9:16'?10:r==='1:1'?14:22}px;height:${r==='9:16'?16:r==='1:1'?14:10}px;border:2px solid ${state.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.3)'};border-radius:2px;`;
+      b.appendChild(ico);
+      b.insertAdjacentHTML('beforeend', `${r} <span style="font-size:9px;color:rgba(255,255,255,0.3);">· ${hint}</span>`);
+      b.onclick = () => setState({ exportRatio: r });
+      ratioCol.appendChild(b);
+    });
+    twoCol.appendChild(ratioCol);
+    const fpsCol = el('div','','flex:1;');
+    fpsCol.appendChild(label('Frame Rate'));
+    [['24fps','Cinematic'],['30fps',''],['60fps','Smooth']].forEach(([fps,hint]) => {
+      const b = el('button','','width:100%;margin-bottom:6px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;');
+      b.style.border = `1.5px solid ${state.exportFps===fps?'#f59e0b':'rgba(255,255,255,0.08)'}`;
+      b.style.background = state.exportFps===fps?'rgba(245,158,11,0.1)':'rgba(255,255,255,0.02)';
+      b.style.color = state.exportFps===fps?'#f59e0b':'rgba(255,255,255,0.5)';
+      b.textContent = fps + (hint ? ` · ${hint}` : '');
+      b.onclick = () => setState({ exportFps: fps });
+      fpsCol.appendChild(b);
+    });
+    twoCol.appendChild(fpsCol);
+    wrap.appendChild(twoCol);
+    const summary = el('div','','background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;');
+    summary.innerHTML = `<span style="font-size:11px;color:rgba(255,255,255,0.4);">${state.exportRatio} · ${state.exportQuality} · ${state.exportFps} · ${state.exportFormat}</span><span style="font-size:11px;color:rgba(255,255,255,0.25);">~${state.exportQuality==='4K'?'800':state.exportQuality==='1080p'?'250':'80'}MB est.</span>`;
+    wrap.appendChild(summary);
+    if (state.exporting) {
+      const pg = el('div','','margin-bottom:14px;');
+      pg.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;color:rgba(255,255,255,0.5);">Rendering reel…</span><span style="font-size:11px;color:#ff3c7e;font-weight:700;">${state.exportProgress}%</span></div>`;
+      const track = el('div','','height:6px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;');
+      const fill = el('div','',`height:100%;width:${state.exportProgress}%;background:linear-gradient(90deg,#ff3c7e,#a855f7);border-radius:999px;transition:width .3s;`);
+      track.appendChild(fill); pg.appendChild(track);
+      wrap.appendChild(pg);
+    }
+    if (state.exportDone) {
+      const ok = el('div','','margin-bottom:14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;');
+      ok.innerHTML = '<span style="font-size:18px;">✅</span><span style="font-size:13px;color:#22c55e;font-weight:600;">Reel exported! Share below ↓</span>';
+      wrap.appendChild(ok);
+    }
+    const expBtn = button(state.exporting?`⏳ RENDERING… ${state.exportProgress}%`:state.exportDone?'⬇ DOWNLOAD REEL':'⬇ EXPORT REEL',
+      `width:100%;padding:15px;border-radius:12px;border:none;background:${state.exporting?'rgba(255,255,255,0.06)':'linear-gradient(90deg,#ff3c7e,#a855f7)'};color:${state.exporting?'rgba(255,255,255,0.4)':'#fff'};font-size:15px;font-weight:800;letter-spacing:.12em;cursor:${state.exporting?'not-allowed':'pointer'};text-transform:uppercase;box-shadow:${state.exporting?'none':'0 4px 24px rgba(255,60,126,0.35)'};`,
+      startExport);
+    expBtn.disabled = state.exporting;
+    wrap.appendChild(expBtn);
+    if (state.exportDone) {
+      const shareRow = el('div','','margin-top:10px;');
+      shareRow.innerHTML = '<div style="font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;text-align:center;">Open upload page to share</div>';
+      const sr = el('div','','display:flex;gap:8px;');
+      [{label:'Instagram',color:'#e1306c',icon:'📸',url:'https://www.instagram.com/reels/'},{label:'TikTok',color:'#69c9d0',icon:'🎵',url:'https://www.tiktok.com/upload'},{label:'YouTube',color:'#ff0000',icon:'▶️',url:'https://studio.youtube.com/'}].forEach(s => {
+        const a = document.createElement('a');
+        a.href=s.url; a.target='_blank'; a.rel='noopener noreferrer';
+        a.style.cssText=`flex:1;padding:9px 4px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid ${s.color}55;background:${s.color}15;color:${s.color};text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;`;
+        a.textContent=`${s.icon} ${s.label}`;
+        a.onmouseenter=()=>{a.style.background=s.color+'30';a.style.transform='translateY(-1px)';};
+        a.onmouseleave=()=>{a.style.background=s.color+'15';a.style.transform='';};
+        sr.appendChild(a);
+      });
+      shareRow.appendChild(sr);
+      wrap.appendChild(shareRow);
+    }
+    return wrap;
+  }));
+
+  main.appendChild(left);
+
+  // ── RIGHT ──
+  const right = el('div','','flex:1;min-width:0;position:sticky;top:20px;');
+
+  // Layers
+  const layersCard = el('div','',cardStyle()+';margin-bottom:14px;');
+  const layHdr = el('div','','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:14px;');
+  layHdr.textContent = 'Layers';
+  layersCard.appendChild(layHdr);
+
+  const allLayers = [
+    ...state.clips.map(c => ({ id:c.id, label:c.name, kind:c.type==='VID'?'video':'image', visible:true, isClip:true })),
+    ...state.canvasEls,
   ];
 
-  return(
-    <div style={{minHeight:"100vh",background:"#0d0d18",color:"#fff"}}>
+  if (allLayers.length === 0) {
+    const empty = el('div','','font-size:13px;color:rgba(255,255,255,0.25);text-align:center;padding:16px 0;');
+    empty.textContent = 'Add elements to see layers';
+    layersCard.appendChild(empty);
+  } else {
+    const list = el('div','','display:flex;flex-direction:column;gap:4px;');
+    [...allLayers].reverse().forEach(layer => {
+      const isSel = state.selectedEl === layer.id;
+      const row = el('div','',`display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:${isSel?'rgba(255,60,126,0.1)':'rgba(255,255,255,0.04)'};border:${isSel?'1px solid rgba(255,60,126,0.3)':'1px solid transparent'};cursor:${layer.isClip?'default':'pointer'};transition:all .15s;font-size:12px;color:rgba(255,255,255,0.7);`);
+      const icons = {video:'🎬',image:'🖼️',pip:'🖼️',emoji:'😀',shape:'⬜',caption:'✦'};
+      const ico = el('span','','font-size:14px;');
+      ico.textContent = icons[layer.kind]||'✦';
+      row.appendChild(ico);
+      const lbl = el('span','','flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
+      lbl.textContent = layer.label;
+      row.appendChild(lbl);
+      if (!layer.isClip) {
+        // opacity badge
+        if (layer.opacity !== undefined && layer.opacity < 1) {
+          const op = el('span','','font-size:10px;color:rgba(255,255,255,0.35);');
+          op.textContent = Math.round((layer.opacity??1)*100)+'%';
+          row.appendChild(op);
+        }
+        const vis = el('button','','background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;');
+        vis.textContent = layer.visible ? '👁' : '🚫';
+        vis.style.opacity = layer.visible ? '1' : '0.4';
+        vis.onclick = e => { e.stopPropagation(); updateEl(layer.id, { visible: !layer.visible }); };
+        row.appendChild(vis);
+        // opacity quick slider
+        const opSlider = document.createElement('input');
+        opSlider.type='range'; opSlider.min='0'; opSlider.max='1'; opSlider.step='0.05';
+        opSlider.value = layer.opacity??1;
+        opSlider.title = 'Opacity';
+        opSlider.style.cssText = 'width:50px;height:3px;accent-color:#ff3c7e;';
+        opSlider.onmousedown = e => e.stopPropagation();
+        opSlider.oninput = e => { e.stopPropagation(); updateEl(layer.id, { opacity: +e.target.value }); };
+        row.appendChild(opSlider);
+        const xbtn = el('button','','background:none;border:none;cursor:pointer;font-size:13px;color:#ef4444;padding:0 2px;');
+        xbtn.textContent = '×';
+        xbtn.onclick = e => { e.stopPropagation(); deleteEl(layer.id); };
+        row.appendChild(xbtn);
+        row.onclick = () => setState({ selectedEl: isSel ? null : layer.id });
+      }
+      const dot = el('span','','font-size:10px;');
+      dot.style.color = layer.visible ? '#22c55e' : 'rgba(255,255,255,0.2)';
+      dot.textContent = '●';
+      row.appendChild(dot);
+      list.appendChild(row);
+    });
+    layersCard.appendChild(list);
+  }
+  right.appendChild(layersCard);
 
-      {/* Header */}
-      <div style={{textAlign:"center",padding:"36px 20px 24px"}}>
-        <h1 style={{fontSize:"clamp(36px,7vw,64px)",fontWeight:900,margin:0,letterSpacing:"-0.02em",lineHeight:1}}>
-          <span style={{color:"#ff3c7e"}}>REEL </span><span style={{color:"#fff"}}>MAKER</span>
-        </h1>
-        <p style={{fontSize:11,letterSpacing:"0.2em",color:"rgba(255,255,255,0.35)",marginTop:10,textTransform:"uppercase"}}>SEQUENCE · STYLE · OVERLAY · DOWNLOAD</p>
-      </div>
+  // Preview
+  const prevCard = el('div','',cardStyle());
+  const prevHdr = el('div','','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:6px;');
+  prevHdr.textContent = 'Live Preview';
+  prevCard.appendChild(prevHdr);
+  const prevSub = el('p','','font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:14px;');
+  prevSub.textContent = 'Click element to select · drag to move · corner handles to resize';
+  prevCard.appendChild(prevSub);
 
-      {/* API Key */}
-      {showApiKey&&(
-        <div style={{maxWidth:1200,margin:"0 auto 16px",padding:"0 20px"}}>
-          <div style={{background:"rgba(255,60,126,0.08)",border:"1px solid rgba(255,60,126,0.25)",borderRadius:10,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-            <span style={{fontSize:13,color:"rgba(255,255,255,0.7)",flex:1}}>🔑 Anthropic API key for AI captions:</span>
-            <input value={apiKey} onChange={e=>setApiKey(e.target.value)} placeholder="sk-ant-..." type="password"
-              style={{flex:"0 0 280px",background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,60,126,0.3)",borderRadius:7,color:"#fff",fontSize:13,padding:"8px 12px",outline:"none"}}/>
-            <button onClick={()=>setShowApiKey(false)} style={{padding:"8px 16px",borderRadius:7,background:"#ff3c7e",border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>Save</button>
-          </div>
-        </div>
-      )}
+  // Phone
+  const phoneCtr = el('div','','display:flex;justify-content:center;margin-bottom:14px;');
+  const phone = el('div','',`width:${CANVAS_W}px;height:${CANVAS_H}px;border-radius:28px;background:#111;border:3px solid #333;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);user-select:none;`);
+  phone.onclick = e => { if (e.target === phone) setState({ selectedEl: null }); };
 
-      <div style={{display:"flex",gap:16,padding:"0 20px 60px",maxWidth:1200,margin:"0 auto",alignItems:"flex-start"}}>
+  // notch
+  const notch = el('div','',`position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:16px;background:#111;border-radius:0 0 12px 12px;z-index:50;`);
+  phone.appendChild(notch);
 
-        {/* ════════ LEFT ════════ */}
-        <div style={{flex:"0 0 540px",minWidth:0}}>
+  const vidClip = state.clips.find(c=>c.type==='VID');
+  const imgClip = state.clips.find(c=>c.type==='IMG');
 
-          {/* 1. Media */}
-          <div style={card}>
-            <SecHead num="1" title="Media Sequence"/>
-            <div style={{display:"flex",gap:10,marginBottom:16}}>
-              <DashedUpload icon="🎬" label="Add Video(s)" sub="MP4 · MOV · WebM" onClick={()=>videoInputRef.current?.click()}/>
-              <DashedUpload icon="🖼️" label="Add Image(s)" sub="JPG · PNG · WebP"  onClick={()=>imageInputRef.current?.click()}/>
-              <input ref={videoInputRef} type="file" accept="video/*" multiple style={{display:"none"}} onChange={e=>addClips(Array.from(e.target.files),"VID")}/>
-              <input ref={imageInputRef} type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>addClips(Array.from(e.target.files),"IMG")}/>
-            </div>
-            {clips.length>0&&<>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                <span style={{fontSize:10,letterSpacing:"0.12em",color:"rgba(255,255,255,0.35)",textTransform:"uppercase"}}>Playback Order</span>
-                <span style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>click × to remove</span>
-              </div>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {clips.map(clip=>(
-                  <div key={clip.id} style={{position:"relative",width:72}}>
-                    <div style={{width:72,height:72,borderRadius:8,overflow:"hidden",background:"#1a1a2e",border:"1px solid rgba(255,255,255,0.1)"}}>
-                      {clip.type==="IMG"
-                        ?<img src={clip.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-                        :<video src={clip.url} muted style={{width:"100%",height:"100%",objectFit:"cover"}}/>}
-                    </div>
-                    <div style={{position:"absolute",top:3,left:3,background:"rgba(0,0,0,0.7)",borderRadius:3,padding:"1px 4px",fontSize:9,fontWeight:700,color:clip.type==="VID"?"#60a5fa":"#a78bfa"}}>{clip.type}</div>
-                    <button onClick={()=>removeClip(clip.id)} style={{position:"absolute",top:2,right:2,width:16,height:16,borderRadius:"50%",background:"#ef4444",border:"none",color:"#fff",fontSize:9,cursor:"pointer"}}>×</button>
-                    <div style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.5)",marginTop:3}}>{clip.duration}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{marginTop:10,fontSize:11,color:"rgba(255,255,255,0.35)"}}>{clips.length} clip{clips.length!==1?"s":""} · {clips.length*8}s total</div>
-            </>}
-          </div>
+  if (vidClip) {
+    const v = document.createElement('video');
+    v.id = 'preview-video';
+    v.src = vidClip.url;
+    v.loop = true; v.playsInline = true;
+    if (state.playing) v.play();
+    v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+    v.onloadedmetadata = () => {
+      if (vidClip.trimEnd === null) setState(s => ({ clips: s.clips.map(c => c.id===vidClip.id?{...c,trimEnd:v.duration,duration:v.duration}:c) }));
+    };
+    phone.appendChild(v);
+  } else if (imgClip) {
+    const img = document.createElement('img');
+    img.src = imgClip.url;
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+    phone.appendChild(img);
+  } else {
+    const empty = el('div','','position:absolute;inset:0;background:linear-gradient(180deg,#1a1a2e,#0d0d18);display:flex;align-items:center;justify-content:center;z-index:1;');
+    empty.innerHTML = '<span style="font-size:32px;opacity:.2;">▶</span>';
+    phone.appendChild(empty);
+  }
 
-          {/* PiP */}
-          <div style={card}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-              <div style={{width:24,height:24,borderRadius:"50%",background:"linear-gradient(135deg,#ff3c7e,#a855f7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#fff"}}>↗</div>
-              <span style={{fontSize:11,fontWeight:700,letterSpacing:"0.15em",color:"rgba(255,255,255,0.55)",textTransform:"uppercase"}}>Picture-in-Picture</span>
-            </div>
-            <DashedUpload icon="🖼️+" label="Add overlay image" sub="Drops into preview — drag & resize freely" onClick={()=>pipInputRef.current?.click()}/>
-            <input ref={pipInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files[0]) addPip(e.target.files[0]);}}/>
-            {canvasEls.filter(e=>e.kind==="pip").length>0&&(
-              <div style={{marginTop:10,fontSize:11,color:"rgba(255,255,255,0.4)"}}>
-                {canvasEls.filter(e=>e.kind==="pip").length} overlay image{canvasEls.filter(e=>e.kind==="pip").length>1?"s":""} · click in preview to select &amp; resize
-              </div>
-            )}
-          </div>
+  // overlay effects
+  if (state.overlays.vignette) {
+    const vEl = el('div','',`position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,${state.overlayOpacity.vignette}) 100%);pointer-events:none;z-index:5;`);
+    phone.appendChild(vEl);
+  }
+  if (state.overlays.bars) {
+    const b1 = el('div','',`position:absolute;top:0;left:0;right:0;height:34px;background:rgba(0,0,0,${state.overlayOpacity.bars});pointer-events:none;z-index:5;`);
+    const b2 = el('div','',`position:absolute;bottom:0;left:0;right:0;height:34px;background:rgba(0,0,0,${state.overlayOpacity.bars});pointer-events:none;z-index:5;`);
+    phone.appendChild(b1); phone.appendChild(b2);
+  }
+  if (state.overlays.grain) {
+    const g = el('div','',`position:absolute;inset:0;opacity:${state.overlayOpacity.grain};background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:5;`);
+    phone.appendChild(g);
+  }
+  if (state.overlays.blur) {
+    const bl = el('div','',`position:absolute;inset:0;box-shadow:inset 0 0 ${Math.round(state.overlayOpacity.blur*60)}px rgba(0,0,0,0.8);pointer-events:none;z-index:5;`);
+    phone.appendChild(bl);
+  }
 
-          {/* 2. Caption Brief */}
-          <div style={card}>
-            <SecHead num="2" title="Caption Brief"/>
-            <Label>What's your reel about?</Label>
-            <textarea value={brief} onChange={e=>setBrief(e.target.value)} placeholder="e.g. food, fitness tips, travel vlog..."
-              style={{width:"100%",minHeight:60,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"#fff",fontSize:14,padding:"10px 12px",outline:"none"}}/>
-            <Label mt={14}>Niche</Label>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-              {["Lifestyle","Fitness","Food","Travel","Fashion","Beauty","Business","Tech"].map(n=><button key={n} onClick={()=>setNiche(n)} style={pBtn(niche===n,"#ff3c7e")}>{n}</button>)}
-            </div>
-            <Label mt={14}>Caption Text</Label>
-            <div style={{display:"flex",gap:8}}>
-              <input value={caption} onChange={e=>setCaption(e.target.value)} placeholder="Your caption here..."
-                style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"#fff",fontSize:14,padding:"10px 12px",outline:"none"}}/>
-              <button onClick={addCaptionEl} title="Add caption to preview" style={{padding:"0 14px",borderRadius:8,background:"rgba(255,60,126,0.15)",border:"1px solid #ff3c7e",color:"#ff3c7e",fontSize:18,cursor:"pointer"}}>+</button>
-            </div>
-            <Label mt={12}>Handle</Label>
-            <input value={handle} onChange={e=>setHandle(e.target.value)} placeholder="@yourhandle"
-              style={{width:"100%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"#fff",fontSize:14,padding:"10px 12px",outline:"none"}}/>
-          </div>
+  // canvas elements
+  state.canvasEls.filter(e=>e.visible).forEach(cel => {
+    phone.appendChild(makeCanvasEl(cel));
+  });
 
-          {/* 3. Text Style */}
-          <div style={card}>
-            <SecHead num="3" title="Text Style"/>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
-              {TEXT_STYLES.map(ts=>(
-                <button key={ts.id} onClick={()=>setTextStyle(ts.id)} style={{padding:"12px 8px",borderRadius:8,cursor:"pointer",border:`1.5px solid ${textStyle===ts.id?"#ff3c7e":"rgba(255,255,255,0.1)"}`,background:textStyle===ts.id?"rgba(255,60,126,0.1)":"rgba(255,255,255,0.03)",display:"flex",flexDirection:"column",alignItems:"center",gap:4,transition:"all .15s"}}>
-                  <span style={{fontSize:16,fontWeight:ts.fw,color:ts.grad?"transparent":ts.pill?"#fff":ts.color,background:ts.grad?"linear-gradient(90deg,#ff3c7e,#a855f7)":ts.pill?"#ff3c7e":"transparent",WebkitBackgroundClip:ts.grad?"text":"unset",borderRadius:ts.pill?"999px":0,padding:ts.pill?"2px 10px":0,textShadow:ts.shadow?"3px 3px 0 #000":"none"}}>{ts.label}</span>
-                  <span style={{fontSize:9,color:"rgba(255,255,255,0.4)",letterSpacing:"0.1em"}}>{ts.sub}</span>
-                </button>
-              ))}
-            </div>
-            <Label>Font Size</Label>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:10,color:"rgba(255,255,255,0.35)"}}>S</span>
-              <input type="range" min={12} max={96} value={fontSize} onChange={e=>setFontSize(+e.target.value)} style={{flex:1}}/>
-              <span style={{fontSize:10,color:"rgba(255,255,255,0.35)"}}>XL</span>
-              <span style={{fontSize:11,color:"#ff3c7e",fontWeight:700,minWidth:32}}>{fontSize}px</span>
-            </div>
-            <Label mt={14}>Accent Color</Label>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {Object.entries(ACCENT_MAP).map(([c,hex])=><button key={c} onClick={()=>setAccentColor(c)} style={pBtn(accentColor===c,hex)}>{c}</button>)}
-            </div>
-          </div>
+  // static caption if no caption canvas el
+  if (state.caption && !state.canvasEls.find(e=>e.kind==='caption')) {
+    const capDiv = el('div','','position:absolute;bottom:0;left:0;right:0;padding:10px 10px 18px;z-index:8;');
+    const ts = TEXT_STYLES.find(t=>t.id===state.textStyle);
+    const capText = el('div','',`font-size:${Math.min(state.fontSize*0.28,15)}px;font-weight:${ts?.fw||700};color:${ACCENT_MAP[state.accentColor]||'#ff3c7e'};text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-bottom:3px;`);
+    if (ts?.shadow) capText.style.textShadow = '2px 2px 0 #000,1px 1px 4px rgba(0,0,0,0.9)';
+    capText.textContent = state.caption;
+    capDiv.appendChild(capText);
+    if (state.handle) {
+      const h = el('div','','font-size:9px;color:rgba(255,255,255,0.7);text-shadow:0 1px 3px rgba(0,0,0,0.9);');
+      h.textContent = state.handle;
+      capDiv.appendChild(h);
+    }
+    phone.appendChild(capDiv);
+  }
 
-          {/* 4. Overlays */}
-          <div style={card}>
-            <SecHead num="4" title="Overlays"/>
-            {OVERLAY_LIST.map(ov=>(
-              <div key={ov.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:18}}>{ov.icon}</span>
-                  <span style={{fontSize:13,color:"rgba(255,255,255,0.8)"}}>{ov.label}</span>
-                </div>
-                <Toggle on={!!activeOverlays[ov.id]} onToggle={()=>toggleOverlay(ov.id)}/>
-              </div>
-            ))}
-          </div>
+  // big play btn
+  if (vidClip && !state.playing) {
+    const playOvr = el('div','','position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;cursor:pointer;');
+    const playCirc = el('div','','width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);border:2px solid rgba(255,255,255,0.3);');
+    playCirc.innerHTML = '<span style="font-size:20px;margin-left:4px;">▶</span>';
+    playOvr.appendChild(playCirc);
+    playOvr.onclick = e => { e.stopPropagation(); playAll(); };
+    phone.appendChild(playOvr);
+  }
 
-          {/* 5. Shapes */}
-          <div style={card}>
-            <SecHead num="5" title="Shapes & Covers"/>
-            <div style={{display:"flex",gap:8}}>
-              {["Rectangle","Circle"].map(s=>(
-                <button key={s} onClick={()=>addShape(s)} style={{padding:"7px 18px",borderRadius:7,fontSize:12,fontWeight:500,cursor:"pointer",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.7)",transition:"all .15s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor="#ff3c7e";e.currentTarget.style.color="#fff";}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.15)";e.currentTarget.style.color="rgba(255,255,255,0.7)";}}
-                >{s==="Rectangle"?"▭":"○"} {s}</button>
-              ))}
-            </div>
-          </div>
+  phoneCtr.appendChild(phone);
+  prevCard.appendChild(phoneCtr);
 
-          {/* 6. Emojis */}
-          <div style={card}>
-            <SecHead num="6" title="Emojis"/>
-            <div style={{display:"flex",gap:8,marginBottom:12}}>
-              <input value={emojiInput} onChange={e=>setEmojiInput(e.target.value)} placeholder="Type or paste emoji..."
-                style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"#fff",fontSize:14,padding:"9px 12px",outline:"none"}}/>
-              <button onClick={()=>{if(emojiInput){addEmoji(emojiInput);setEmojiInput("");}}} style={{padding:"9px 16px",background:"#ff3c7e",border:"none",borderRadius:8,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>+ Add</button>
-            </div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:12}}>
-              {EMOJIS.map((em,i)=>(
-                <button key={i} onClick={()=>addEmoji(em)} style={{fontSize:20,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,width:36,height:36,cursor:"pointer",transition:"all .12s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,60,126,0.15)";e.currentTarget.style.borderColor="#ff3c7e";}}
-                  onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.04)";e.currentTarget.style.borderColor="rgba(255,255,255,0.08)";}}
-                >{em}</button>
-              ))}
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em"}}>Size</span>
-              <input type="range" min={16} max={128} value={emojiSize} onChange={e=>setEmojiSize(+e.target.value)} style={{flex:1}}/>
-              <span style={{fontSize:11,color:"#ff3c7e",fontWeight:700,minWidth:34}}>{emojiSize}px</span>
-            </div>
-          </div>
+  // Playback controls
+  const ctrlRow = el('div','','display:flex;gap:8px;justify-content:center;margin-bottom:12px;');
+  const playBtn = button('▶ Play',`padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:${state.playing?'rgba(255,60,126,0.15)':'rgba(255,255,255,0.07)'};border:1px solid ${state.playing?'#ff3c7e':'rgba(255,255,255,0.12)'};color:${state.playing?'#ff3c7e':'rgba(255,255,255,0.8)'};cursor:${!vidClip?'not-allowed':'pointer'};opacity:${!vidClip?0.4:1};`, playAll);
+  const stopBtn = button('■ Stop','padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);cursor:pointer;', stopAll);
+  playBtn.disabled = !vidClip;
+  ctrlRow.appendChild(playBtn); ctrlRow.appendChild(stopBtn);
+  prevCard.appendChild(ctrlRow);
 
-          {/* 7. Audio */}
-          <div style={card}>
-            <SecHead num="7" title="Voiceover / Audio"/>
-            <div style={{display:"flex",gap:10}}>
-              {[{label:"🎙️ Record",hov:"#ff3c7e"},{label:"📁 Upload Audio",hov:"#f59e0b"}].map(b=>(
-                <button key={b.label} style={{flex:1,padding:11,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"rgba(255,255,255,0.75)",fontSize:13,fontWeight:500,cursor:"pointer",transition:"all .15s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=b.hov;e.currentTarget.style.color="#fff";}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.75)";}}
-                >{b.label}</button>
-              ))}
-            </div>
-          </div>
+  // Volume
+  const volBox = el('div','','background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;');
+  const volRow = el('div','','display:flex;align-items:center;gap:10px;');
+  const muteBtn = el('button','','background:none;border:none;cursor:pointer;font-size:18px;padding:0;flex-shrink:0;');
+  muteBtn.textContent = state.muted||state.volume===0 ? '🔇' : state.volume<0.5 ? '🔉' : '🔊';
+  muteBtn.onclick = () => { setState(s => ({ muted: !s.muted })); syncVolume(); };
+  volRow.appendChild(muteBtn);
+  const volSlider = document.createElement('input');
+  volSlider.type='range'; volSlider.min='0'; volSlider.max='1'; volSlider.step='0.01';
+  volSlider.value = state.muted ? 0 : state.volume;
+  volSlider.style.cssText = 'flex:1;';
+  volSlider.oninput = e => { setState({ volume: +e.target.value, muted: +e.target.value===0 }); syncVolume(); };
+  volRow.appendChild(volSlider);
+  const volPct = el('span','','font-size:11px;color:rgba(255,255,255,0.4);min-width:34px;text-align:right;');
+  volPct.textContent = (state.muted ? 0 : Math.round(state.volume*100))+'%';
+  volRow.appendChild(volPct);
+  volBox.appendChild(volRow);
+  prevCard.appendChild(volBox);
 
-          {/* Generate */}
-          <button onClick={generateCaptions} disabled={generating} style={{width:"100%",padding:16,borderRadius:12,border:"none",background:generating?"rgba(255,60,126,0.4)":"linear-gradient(90deg,#ff3c7e,#a855f7)",color:"#fff",fontSize:15,fontWeight:800,letterSpacing:"0.12em",cursor:generating?"not-allowed":"pointer",textTransform:"uppercase",boxShadow:generating?"none":"0 4px 24px rgba(255,60,126,0.35)",marginBottom:14}}>
-            {generating?"⏳ GENERATING…":"✦ GENERATE CAPTIONS"}
-          </button>
-          {generatedCaption&&(
-            <div style={{background:"rgba(168,85,247,0.1)",border:"1px solid rgba(168,85,247,0.2)",borderRadius:10,padding:"14px 16px",marginBottom:14}}>
-              <div style={{fontSize:10,color:"rgba(168,85,247,0.8)",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>✦ AI Generated Captions</div>
-              <pre style={{margin:0,fontSize:13,color:"rgba(255,255,255,0.85)",whiteSpace:"pre-wrap",fontFamily:"inherit",lineHeight:1.6}}>{generatedCaption}</pre>
-            </div>
-          )}
+  if (vidClip) {
+    const vname = el('div','','text-align:center;font-size:10px;color:rgba(255,255,255,0.25);margin-top:8px;');
+    vname.textContent = vidClip.name;
+    prevCard.appendChild(vname);
+  }
 
-          {/* 8. Export */}
-          <div style={card}>
-            <SecHead num="8" title="Export & Download"/>
-            <Label>Format</Label>
-            <div style={{display:"flex",gap:8,marginBottom:16}}>
-              {["MP4","MOV","GIF"].map(f=>(
-                <button key={f} onClick={()=>setExportFormat(f)} style={{flex:1,padding:"9px 0",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer",border:`1.5px solid ${exportFormat===f?"#ff3c7e":"rgba(255,255,255,0.1)"}`,background:exportFormat===f?"rgba(255,60,126,0.12)":"rgba(255,255,255,0.03)",color:exportFormat===f?"#ff3c7e":"rgba(255,255,255,0.55)",transition:"all .15s"}}>{f}</button>
-              ))}
-            </div>
-            <Label>Quality</Label>
-            <div style={{display:"flex",gap:8,marginBottom:16}}>
-              {["720p","1080p","4K"].map(q=>(
-                <button key={q} onClick={()=>setExportQuality(q)} style={{flex:1,padding:"9px 0",borderRadius:8,fontSize:13,fontWeight:700,cursor:"pointer",border:`1.5px solid ${exportQuality===q?"#a855f7":"rgba(255,255,255,0.1)"}`,background:exportQuality===q?"rgba(168,85,247,0.12)":"rgba(255,255,255,0.03)",color:exportQuality===q?"#a855f7":"rgba(255,255,255,0.55)",transition:"all .15s"}}>
-                  {q}{q==="4K"&&<span style={{fontSize:9,marginLeft:4,background:"rgba(168,85,247,0.3)",padding:"1px 5px",borderRadius:4}}> PRO</span>}
-                </button>
-              ))}
-            </div>
-            <div style={{display:"flex",gap:16,marginBottom:16}}>
-              <div style={{flex:1}}>
-                <Label>Aspect Ratio</Label>
-                {[["9:16","Reels/TikTok"],["1:1","Square"],["16:9","YouTube"]].map(([r,hint])=>(
-                  <button key={r} onClick={()=>setExportRatio(r)} style={{width:"100%",marginBottom:6,padding:"7px 10px",borderRadius:7,fontSize:12,fontWeight:600,cursor:"pointer",border:`1.5px solid ${exportRatio===r?"#06b6d4":"rgba(255,255,255,0.08)"}`,background:exportRatio===r?"rgba(6,182,212,0.1)":"rgba(255,255,255,0.02)",color:exportRatio===r?"#06b6d4":"rgba(255,255,255,0.5)",display:"flex",alignItems:"center",gap:8,transition:"all .15s"}}>
-                    <div style={{width:r==="9:16"?10:r==="1:1"?14:22,height:r==="9:16"?16:r==="1:1"?14:10,border:`2px solid ${exportRatio===r?"#06b6d4":"rgba(255,255,255,0.3)"}`,borderRadius:2,flexShrink:0}}/>
-                    {r}<span style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>· {hint}</span>
-                  </button>
-                ))}
-              </div>
-              <div style={{flex:1}}>
-                <Label>Frame Rate</Label>
-                {[["24fps","Cinematic"],["30fps",""],["60fps","Smooth"]].map(([fps,hint])=>(
-                  <button key={fps} onClick={()=>setExportFps(fps)} style={{width:"100%",marginBottom:6,padding:"7px 10px",borderRadius:7,fontSize:12,fontWeight:600,cursor:"pointer",border:`1.5px solid ${exportFps===fps?"#f59e0b":"rgba(255,255,255,0.08)"}`,background:exportFps===fps?"rgba(245,158,11,0.1)":"rgba(255,255,255,0.02)",color:exportFps===fps?"#f59e0b":"rgba(255,255,255,0.5)",transition:"all .15s"}}>
-                    {fps}{hint&&<span style={{fontSize:9,color:"rgba(255,255,255,0.3)",marginLeft:4}}>· {hint}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,padding:"10px 14px",marginBottom:16,display:"flex",justifyContent:"space-between"}}>
-              <span style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{exportRatio} · {exportQuality} · {exportFps} · {exportFormat}</span>
-              <span style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>~{exportQuality==="4K"?"800":exportQuality==="1080p"?"250":"80"}MB est.</span>
-            </div>
-            {exporting&&(
-              <div style={{marginBottom:14}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                  <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>Rendering reel…</span>
-                  <span style={{fontSize:11,color:"#ff3c7e",fontWeight:700}}>{exportProgress}%</span>
-                </div>
-                <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:`${exportProgress}%`,background:"linear-gradient(90deg,#ff3c7e,#a855f7)",borderRadius:999,transition:"width .3s ease"}}/>
-                </div>
-              </div>
-            )}
-            {exportDone&&(
-              <div style={{marginBottom:14,background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontSize:18}}>✅</span>
-                <span style={{fontSize:13,color:"#22c55e",fontWeight:600}}>Reel exported! Share below ↓</span>
-              </div>
-            )}
-            <button onClick={startExport} disabled={exporting} style={{width:"100%",padding:15,borderRadius:12,border:"none",background:exporting?"rgba(255,255,255,0.06)":"linear-gradient(90deg,#ff3c7e,#a855f7)",color:exporting?"rgba(255,255,255,0.4)":"#fff",fontSize:15,fontWeight:800,letterSpacing:"0.12em",cursor:exporting?"not-allowed":"pointer",textTransform:"uppercase",boxShadow:exporting?"none":"0 4px 24px rgba(255,60,126,0.35)",transition:"all .2s"}}>
-              {exporting?`⏳ RENDERING… ${exportProgress}%`:exportDone?"⬇ DOWNLOAD REEL":"⬇ EXPORT REEL"}
-            </button>
-            {exportDone&&(
-              <div style={{marginTop:10}}>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,textAlign:"center"}}>Open upload page to share</div>
-                <div style={{display:"flex",gap:8}}>
-                  {[{label:"Instagram",color:"#e1306c",icon:"📸",url:"https://www.instagram.com/reels/"},{label:"TikTok",color:"#69c9d0",icon:"🎵",url:"https://www.tiktok.com/upload"},{label:"YouTube",color:"#ff0000",icon:"▶️",url:"https://studio.youtube.com/"}].map(s=>(
-                    <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
-                      style={{flex:1,padding:"9px 4px",borderRadius:8,fontSize:11,fontWeight:600,border:`1px solid ${s.color}55`,background:`${s.color}15`,color:s.color,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:4,transition:"all .15s"}}
-                      onMouseEnter={e=>{e.currentTarget.style.background=`${s.color}30`;e.currentTarget.style.transform="translateY(-1px)";}}
-                      onMouseLeave={e=>{e.currentTarget.style.background=`${s.color}15`;e.currentTarget.style.transform="";}}
-                    >{s.icon} {s.label}</a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ════════ RIGHT ════════ */}
-        <div style={{flex:1,minWidth:0,position:"sticky",top:20}}>
-
-          {/* Layers Panel */}
-          <div style={{...card,marginBottom:14}}>
-            <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.15em",color:"rgba(255,255,255,0.45)",textTransform:"uppercase",marginBottom:14}}>Layers</div>
-            {allLayers.length===0
-              ?<div style={{fontSize:13,color:"rgba(255,255,255,0.25)",textAlign:"center",padding:"16px 0"}}>Add elements to see layers</div>
-              :<div style={{display:"flex",flexDirection:"column",gap:4}}>
-                {[...allLayers].reverse().map(layer=>{
-                  const isCanvas=!layer.isClip;
-                  const isSelected=selectedEl===layer.id;
-                  return(
-                    <div key={layer.id}
-                      onClick={()=>isCanvas&&setSelectedEl(isSelected?null:layer.id)}
-                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:7,background:isSelected?"rgba(255,60,126,0.1)":"rgba(255,255,255,0.04)",fontSize:12,color:"rgba(255,255,255,0.7)",cursor:isCanvas?"pointer":"default",border:isSelected?"1px solid rgba(255,60,126,0.3)":"1px solid transparent",transition:"all .15s"}}>
-                      <span>{layer.kind==="video"?"🎬":layer.kind==="image"?"🖼️":layer.kind==="pip"?"🖼️":layer.kind==="emoji"?"😀":layer.kind==="shape"?"⬜":layer.kind==="caption"?"✦":"✦"}</span>
-                      <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{layer.label}</span>
-                      {isCanvas&&(
-                        <button onClick={e=>{e.stopPropagation();toggleLayerVis(layer.id);}}
-                          style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:layer.visible?1:0.3,padding:"0 2px"}} title={layer.visible?"Hide":"Show"}>
-                          {layer.visible?"👁":"🚫"}
-                        </button>
-                      )}
-                      {isCanvas&&(
-                        <button onClick={e=>{e.stopPropagation();deleteEl(layer.id);}}
-                          style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:"#ef4444",padding:"0 2px"}}>×</button>
-                      )}
-                      <span style={{fontSize:10,color:layer.visible?"#22c55e":"rgba(255,255,255,0.2)"}}>●</span>
-                    </div>
-                  );
-                })}
-              </div>
-            }
-          </div>
-
-          {/* Live Preview */}
-          <div style={card}>
-            <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.15em",color:"rgba(255,255,255,0.45)",textTransform:"uppercase",marginBottom:6}}>Live Preview</div>
-            <p style={{fontSize:10,color:"rgba(255,255,255,0.25)",marginBottom:14}}>Click elements to select · drag to move · corner handles to resize</p>
-
-            {/* Phone */}
-            <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
-              <div
-                ref={canvasRef}
-                onClick={e=>{if(e.target===canvasRef.current||e.target===canvasRef.current.firstChild) setSelectedEl(null);}}
-                style={{width:CANVAS.w,height:CANVAS.h,borderRadius:28,background:"#111",border:"3px solid #333",position:"relative",overflow:"hidden",boxShadow:"0 20px 60px rgba(0,0,0,0.7)",userSelect:"none"}}>
-
-                {/* Notch */}
-                <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:60,height:16,background:"#111",borderRadius:"0 0 12px 12px",zIndex:50}}/>
-
-                {/* Video BG */}
-                {previewVideo&&(
-                  <video ref={previewVideoRef} src={previewVideo.url} loop playsInline
-                    style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:1}}
-                    onEnded={()=>setPlaying(false)}/>
-                )}
-                {/* Image BG */}
-                {!previewVideo&&previewImg&&(
-                  <img src={previewImg.url} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:1}}/>
-                )}
-                {/* Empty */}
-                {!previewVideo&&!previewImg&&(
-                  <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,#1a1a2e,#0d0d18)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1}}>
-                    <span style={{fontSize:32,opacity:0.2}}>▶</span>
-                  </div>
-                )}
-
-                {/* Visual overlays */}
-                {activeOverlays.vignette&&<div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.75) 100%)",pointerEvents:"none",zIndex:5}}/>}
-                {activeOverlays.bars&&<>
-                  <div style={{position:"absolute",top:0,left:0,right:0,height:30,background:"#000",pointerEvents:"none",zIndex:5}}/>
-                  <div style={{position:"absolute",bottom:0,left:0,right:0,height:30,background:"#000",pointerEvents:"none",zIndex:5}}/>
-                </>}
-
-                {/* Canvas elements (pip, emoji, shapes, captions) */}
-                {canvasEls.filter(e=>e.visible).map(el=>(
-                  <CanvasEl key={el.id} el={el} selected={selectedEl===el.id}
-                    onSelect={()=>setSelectedEl(el.id)}
-                    onChange={updateEl}
-                    onDelete={()=>deleteEl(el.id)}
-                    bounds={CANVAS}/>
-                ))}
-
-                {/* Static caption at bottom if not added as canvas el */}
-                {caption&&canvasEls.filter(e=>e.kind==="caption").length===0&&(
-                  <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"10px 10px 16px",zIndex:8}}>
-                    <div style={{marginBottom:3,fontSize:Math.min(fontSize*0.28,15),fontWeight:activeTS?.fw||700,color:ACCENT_MAP[accentColor]||"#ff3c7e",textShadow:"1px 1px 4px rgba(0,0,0,0.8)"}}>
-                      {caption}
-                    </div>
-                    {handle&&<div style={{fontSize:9,color:"rgba(255,255,255,0.7)",textShadow:"0 1px 3px rgba(0,0,0,0.8)"}}>{handle}</div>}
-                  </div>
-                )}
-
-                {/* Play overlay */}
-                {previewVideo&&!playing&&(
-                  <div onClick={handlePlay} style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:20,cursor:"pointer"}}>
-                    <div style={{width:52,height:52,borderRadius:"50%",background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)",border:"2px solid rgba(255,255,255,0.3)"}}>
-                      <span style={{fontSize:20,marginLeft:4}}>▶</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Playback controls */}
-            <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>
-              <button onClick={handlePlay} disabled={!previewVideo||playing}
-                style={{padding:"7px 20px",borderRadius:7,fontSize:12,fontWeight:600,background:playing?"rgba(255,60,126,0.15)":"rgba(255,255,255,0.07)",border:`1px solid ${playing?"#ff3c7e":"rgba(255,255,255,0.12)"}`,color:playing?"#ff3c7e":"rgba(255,255,255,0.8)",cursor:!previewVideo?"not-allowed":"pointer",opacity:!previewVideo?0.4:1}}>
-                ▶ Play
-              </button>
-              <button onClick={handleStop} disabled={!previewVideo}
-                style={{padding:"7px 20px",borderRadius:7,fontSize:12,fontWeight:600,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.8)",cursor:!previewVideo?"not-allowed":"pointer",opacity:!previewVideo?0.4:1}}>
-                ■ Stop
-              </button>
-            </div>
-
-            {/* Volume control */}
-            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 14px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <button onClick={()=>setMuted(m=>!m)}
-                  style={{background:"none",border:"none",cursor:"pointer",fontSize:18,padding:0,flexShrink:0}}
-                  title={muted?"Unmute":"Mute"}>
-                  {muted||volume===0?"🔇":volume<0.5?"🔉":"🔊"}
-                </button>
-                <input type="range" min={0} max={1} step={0.01} value={muted?0:volume}
-                  onChange={e=>{setVolume(+e.target.value);if(+e.target.value>0) setMuted(false);}}
-                  style={{flex:1,accentColor:"#ff3c7e"}}/>
-                <span style={{fontSize:11,color:"rgba(255,255,255,0.4)",minWidth:34,textAlign:"right"}}>{muted?"0":Math.round(volume*100)}%</span>
-              </div>
-            </div>
-
-            {previewVideo&&(
-              <div style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.25)",marginTop:8}}>{previewVideo.name}</div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  right.appendChild(prevCard);
+  main.appendChild(right);
+  root.appendChild(main);
+  return root;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// ── DOM HELPERS ────────────────────────────────────────────────────────────
+function el(tag, id, style) {
+  const e = document.createElement(tag);
+  if (id) e.id = id;
+  if (style) e.style.cssText = style;
+  return e;
+}
+function button(text, style, onclick) {
+  const b = document.createElement('button');
+  b.textContent = text; b.style.cssText = style;
+  if (onclick) b.onclick = onclick;
+  return b;
+}
+function input(type, value, onChange, placeholder, extraStyle='') {
+  const i = document.createElement('input');
+  i.type=type; i.value=value; i.placeholder=placeholder||'';
+  i.style.cssText = `background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:14px;padding:10px 12px;outline:none;width:100%;${extraStyle}`;
+  i.oninput = e => onChange(e.target.value);
+  return i;
+}
+function textarea(value, onChange, placeholder) {
+  const t = document.createElement('textarea');
+  t.value=value; t.placeholder=placeholder||'';
+  t.style.cssText = 'width:100%;min-height:60px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:14px;padding:10px 12px;outline:none;resize:vertical;';
+  t.oninput = e => onChange(e.target.value);
+  return t;
+}
+function label(text, mt=0) {
+  const d = document.createElement('div');
+  d.style.cssText = `font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;margin-top:${mt}px;`;
+  d.textContent = text;
+  return d;
+}
+function pillButton(text, active, col, onclick) {
+  const b = document.createElement('button');
+  b.textContent=text;
+  b.style.cssText = `padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid ${active?col:'rgba(255,255,255,0.12)'};background:${active?col+'22':'transparent'};color:${active?col:'rgba(255,255,255,0.6)'};transition:all .15s;`;
+  b.onclick=onclick;
+  return b;
+}
+function segButton(text, active, col, onclick) {
+  const b = document.createElement('button');
+  b.textContent=text;
+  b.style.cssText = `flex:1;padding:9px 0;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid ${active?col:'rgba(255,255,255,0.1)'};background:${active?col+'22':'rgba(255,255,255,0.03)'};color:${active?col:'rgba(255,255,255,0.55)'};transition:all .15s;`;
+  b.onclick=onclick;
+  return b;
+}
+function makeToggle(on, onclick) {
+  const d = document.createElement('div');
+  d.style.cssText = `width:42px;height:24px;border-radius:999px;cursor:pointer;background:${on?'linear-gradient(90deg,#ff3c7e,#a855f7)':'rgba(255,255,255,0.1)'};position:relative;transition:background .2s;flex-shrink:0;`;
+  const knob = document.createElement('div');
+  knob.style.cssText = `position:absolute;top:3px;left:${on?21:3}px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,0.4);`;
+  d.appendChild(knob); d.onclick=onclick;
+  return d;
+}
+function makeSlider(value, min, max, onChange, displayVal, color, labels=null, step=1) {
+  const wrap = document.createElement('div');
+  const row = el('div','','display:flex;align-items:center;gap:10px;');
+  if (labels) { const s=el('span','','font-size:10px;color:rgba(255,255,255,0.35);'); s.textContent=labels[0]; row.appendChild(s); }
+  const slider = document.createElement('input');
+  slider.type='range'; slider.min=min; slider.max=max; slider.step=step; slider.value=value;
+  slider.style.cssText = `flex:1;background:linear-gradient(to right,${color} ${(value-min)/(max-min)*100}%,rgba(255,255,255,0.15) 0);`;
+  slider.oninput = e => onChange(step<1 ? +e.target.value : +e.target.value|0);
+  row.appendChild(slider);
+  if (labels) { const e2=el('span','','font-size:10px;color:rgba(255,255,255,0.35);'); e2.textContent=labels[1]; row.appendChild(e2); }
+  const val = el('span','','font-size:11px;font-weight:700;min-width:40px;text-align:right;'); val.style.color=color;
+  val.textContent=displayVal;
+  row.appendChild(val);
+  wrap.appendChild(row);
+  return wrap;
+}
+function makeSection(num, title, contentFn) {
+  const d = el('div','',cardStyle());
+  const hdr = el('div','','display:flex;align-items:center;gap:10px;margin-bottom:16px;');
+  const badge = el('div','','width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ff3c7e,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;');
+  badge.textContent=num;
+  const t = el('span','','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.55);text-transform:uppercase;');
+  t.textContent=title;
+  hdr.appendChild(badge); hdr.appendChild(t);
+  d.appendChild(hdr);
+  d.appendChild(contentFn());
+  return d;
+}
+function makeUploadBox(icon, label2, sub, accept, multiple, onFiles) {
+  const d = el('div','','flex:1;border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:24px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;');
+  d.innerHTML = `<span style="font-size:26px;">${icon}</span><span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">${label2}</span><span style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.08em;">${sub}</span>`;
+  d.onmouseenter = () => { d.style.borderColor='#ff3c7e'; d.style.background='rgba(255,60,126,0.05)'; };
+  d.onmouseleave = () => { d.style.borderColor='rgba(255,255,255,0.15)'; d.style.background=''; };
+  d.onclick = () => {
+    const inp = document.createElement('input');
+    inp.type='file'; inp.accept=accept; inp.multiple=!!multiple;
+    inp.onchange = e => { if (e.target.files.length) onFiles(e.target.files); };
+    inp.click();
+  };
+  return d;
+}
+function cardStyle() { return 'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 22px;margin-bottom:14px;'; }
+
+// ── INITIAL RENDER ─────────────────────────────────────────────────────────
+render();
 </script>
 </body>
 </html>
