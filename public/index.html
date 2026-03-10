@@ -6,1000 +6,910 @@
 <title>Reel Maker</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0d18;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+body{background:#0d0d18;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
 input,textarea,button,select{font-family:inherit}
-input[type=range]{-webkit-appearance:none;height:4px;border-radius:999px;outline:none;cursor:pointer}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:999px;outline:none;cursor:pointer;background:rgba(255,255,255,0.15)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#ff3c7e;cursor:pointer;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.5)}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:#0d0d18}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px}
-.rh{position:absolute;width:12px;height:12px;background:#ff3c7e;border:2px solid #fff;border-radius:2px;z-index:100;touch-action:none}
-.rh-se{bottom:-6px;right:-6px;cursor:se-resize}
-.rh-sw{bottom:-6px;left:-6px;cursor:sw-resize}
-.rh-ne{top:-6px;right:-6px;cursor:ne-resize}
-.rh-nw{top:-6px;left:-6px;cursor:nw-resize}
-.canvas-el{position:absolute;touch-action:none;cursor:move}
-.canvas-el.selected{outline:2px solid #ff3c7e;outline-offset:1px}
+
+/* Canvas element system */
+#phone-canvas{position:relative;overflow:hidden}
+.cel{position:absolute;cursor:move;user-select:none;touch-action:none;box-sizing:border-box}
+.cel.sel{outline:2px solid #ff3c7e;outline-offset:1px;z-index:20!important}
+.rh{position:absolute;width:12px;height:12px;background:#ff3c7e;border:2px solid #fff;border-radius:2px;z-index:30;touch-action:none;cursor:pointer}
+.rh.se{bottom:-7px;right:-7px;cursor:se-resize}
+.rh.sw{bottom:-7px;left:-7px;cursor:sw-resize}
+.rh.ne{top:-7px;right:-7px;cursor:ne-resize}
+.rh.nw{top:-7px;left:-7px;cursor:nw-resize}
+.del-btn{position:absolute;top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;background:#ef4444;border:2px solid #fff;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:31;padding:0;line-height:1}
+
+/* Layout */
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 22px;margin-bottom:14px}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-badge{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ff3c7e,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.55);text-transform:uppercase}
+.field-label{font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px}
+.pill-btn{padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.6)}
+.pill-btn.active{background:rgba(255,60,126,0.15);border-color:#ff3c7e;color:#ff3c7e}
+.seg-btn{flex:1;padding:9px 0;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55)}
+.toggle{width:42px;height:24px;border-radius:999px;cursor:pointer;background:rgba(255,255,255,0.1);position:relative;transition:background .2s;flex-shrink:0;border:none}
+.toggle.on{background:linear-gradient(90deg,#ff3c7e,#a855f7)}
+.toggle-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+.toggle.on .toggle-knob{left:21px}
+.upload-box{flex:1;border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:22px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;text-align:center}
+.upload-box:hover{border-color:#ff3c7e;background:rgba(255,60,126,0.05)}
+.upload-box .ub-icon{font-size:26px}
+.upload-box .ub-label{font-size:13px;font-weight:600;color:rgba(255,255,255,0.8)}
+.upload-box .ub-sub{font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.08em}
+.text-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:14px;padding:10px 12px;outline:none}
+.text-input:focus{border-color:#ff3c7e}
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.slider-val{font-size:11px;font-weight:700;color:#ff3c7e;min-width:40px;text-align:right;white-space:nowrap}
+.layer-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid transparent;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;transition:all .15s;margin-bottom:4px}
+.layer-row:hover{background:rgba(255,255,255,0.07)}
+.layer-row.sel{background:rgba(255,60,126,0.1);border-color:rgba(255,60,126,0.3)}
 </style>
 </head>
 <body>
 <div id="app"></div>
 
 <script>
-// ── STATE ──────────────────────────────────────────────────────────────────
-let state = {
+// ─────────────────────────────────────────────
+// STATE  (never mutated directly — use set())
+// ─────────────────────────────────────────────
+let S = {
   clips: [],
   canvasEls: [],
   selectedEl: null,
-  caption: '',
-  handle: '',
-  brief: '',
-  niche: 'Lifestyle',
-  textStyle: 'bold',
-  fontSize: 46,
-  accentColor: 'Pink',
-  overlays: { vignette: false, bars: false, grain: false, blur: false },
-  overlayOpacity: { vignette: 0.7, bars: 1, grain: 0.5, blur: 0.5 },
-  playing: false,
-  volume: 1,
-  muted: false,
-  audioFile: null,
-  audioUrl: null,
-  emojiInput: '',
-  emojiSize: 64,
-  exportFormat: 'MP4',
-  exportQuality: '1080p',
-  exportRatio: '9:16',
-  exportFps: '30fps',
-  exporting: false,
-  exportProgress: 0,
-  exportDone: false,
-  apiKey: '',
-  showApiKey: false,
-  generatedCaption: '',
-  generating: false,
+  caption: '', handle: '', brief: '', niche: 'Lifestyle',
+  textStyle: 'bold', fontSize: 46, accentColor: 'Pink',
+  overlays: {vignette:false, bars:false, grain:false, blur:false},
+  overlayOpacity: {vignette:0.7, bars:1, grain:0.5, blur:0.5},
+  shapeOpacity: {},   // id -> opacity
+  playing: false, volume: 1, muted: false,
+  audioName: null, audioUrl: null,
+  emojiInput: '', emojiSize: 64,
+  exportFormat:'MP4', exportQuality:'1080p', exportRatio:'9:16', exportFps:'30fps',
+  exporting:false, exportProgress:0, exportDone:false,
+  apiKey:'', showApiKey:false, generatedCaption:'', generating:false,
 };
 
-let videoEl = null;
-let audioEl = null;
+// Persistent media objects — survive re-renders
+let _audioEl = null;
+let _videoSrc = null; // track if video src changed
 
-function setState(patch) {
-  Object.assign(state, typeof patch === 'function' ? patch(state) : patch);
-  render();
-}
-
-// ── CONSTANTS ──────────────────────────────────────────────────────────────
-const ACCENT_MAP = {Pink:'#ff3c7e',Purple:'#a855f7',Cyan:'#06b6d4',Gold:'#f59e0b',Green:'#22c55e',White:'#ffffff'};
+const ACCENT = {Pink:'#ff3c7e',Purple:'#a855f7',Cyan:'#06b6d4',Gold:'#f59e0b',Green:'#22c55e',White:'#ffffff'};
 const NICHES = ['Lifestyle','Fitness','Food','Travel','Fashion','Beauty','Business','Tech'];
 const EMOJIS = ['⬛','🔥','✨','💯','🙌','💪','🎉','☀️','👏','↩️','😎','🤩','🌸','🦋','🎵','🧚','🏆','👑','💎','🌈','▶️','🧿','🌊','🎯','🌴','🎮','💡'];
 const TEXT_STYLES = [
-  {id:'bold',label:'BOLD',fw:900,color:'#fff'},
+  {id:'bold',  label:'BOLD',  fw:900,color:'#fff'},
   {id:'stroke',label:'STROKE',fw:700,color:'#ff3c7e'},
-  {id:'pill',label:'PILL',fw:700,color:'#fff',pill:true},
+  {id:'pill',  label:'PILL',  fw:700,color:'#fff',pill:true},
   {id:'shadow',label:'SHADOW',fw:900,color:'#ff3c7e',shadow:true},
-  {id:'grad',label:'GRAD',fw:900,grad:true},
-  {id:'clean',label:'clean',fw:400,color:'#fff'},
+  {id:'grad',  label:'GRAD',  fw:900,grad:true},
+  {id:'clean', label:'clean', fw:400,color:'#fff'},
 ];
-const CANVAS_W = 220, CANVAS_H = 390;
+const CW = 220, CH = 390; // canvas dimensions
 
-// ── DRAG + RESIZE ──────────────────────────────────────────────────────────
-let dragState = null;
-
-function startDrag(e, id) {
-  e.preventDefault();
-  e.stopPropagation();
-  const el = state.canvasEls.find(e => e.id === id);
-  if (!el) return;
-  setState({ selectedEl: id });
-  const cx = e.clientX ?? e.touches?.[0]?.clientX;
-  const cy = e.clientY ?? e.touches?.[0]?.clientY;
-  dragState = { type: 'drag', id, sx: cx, sy: cy, ox: el.x, oy: el.y };
+// ─────────────────────────────────────────────
+// STATE MANAGEMENT
+// Two modes:
+//   set(patch)   → merge + full re-render  (UI updates)
+//   setQuiet(patch) → merge only, then call patchCanvas()  (drag/resize — no full re-render)
+// ─────────────────────────────────────────────
+function set(patch) {
+  if (typeof patch === 'function') patch = patch(S);
+  Object.assign(S, patch);
+  renderApp();
 }
 
-function startResize(e, id, dir) {
-  e.preventDefault();
-  e.stopPropagation();
-  const el = state.canvasEls.find(e => e.id === id);
-  if (!el) return;
-  const cx = e.clientX ?? e.touches?.[0]?.clientX;
-  const cy = e.clientY ?? e.touches?.[0]?.clientY;
-  dragState = { type: 'resize', id, dir, sx: cx, sy: cy, ox: el.x, oy: el.y, ow: el.w, oh: el.h };
+function setQuiet(patch) {
+  if (typeof patch === 'function') patch = patch(S);
+  Object.assign(S, patch);
+  patchCanvas(); // only update canvas element positions
 }
 
-document.addEventListener('mousemove', onPointerMove);
-document.addEventListener('touchmove', onPointerMove, { passive: false });
-document.addEventListener('mouseup', onPointerUp);
-document.addEventListener('touchend', onPointerUp);
+let _uid_counter = 0;
+function uid() { return ++_uid_counter; }
 
-function onPointerMove(e) {
-  if (!dragState) return;
+// ─────────────────────────────────────────────
+// DRAG & RESIZE (window-level, no re-render during move)
+// ─────────────────────────────────────────────
+let _drag = null;
+let _canvasRect = null;
+
+window.addEventListener('mousedown',  onDown,  {passive:false});
+window.addEventListener('touchstart', onDown,  {passive:false});
+window.addEventListener('mousemove',  onMove,  {passive:false});
+window.addEventListener('touchmove',  onMove,  {passive:false});
+window.addEventListener('mouseup',    onUp);
+window.addEventListener('touchend',   onUp);
+
+function clientXY(e) {
+  if (e.touches && e.touches[0]) return [e.touches[0].clientX, e.touches[0].clientY];
+  return [e.clientX, e.clientY];
+}
+
+function onDown(e) {
+  const handle = e.target.closest('.rh');
+  const celDiv  = e.target.closest('.cel');
+  if (!handle && !celDiv) return;
+  e.preventDefault();
+  _canvasRect = document.getElementById('phone-canvas')?.getBoundingClientRect();
+  if (!_canvasRect) return;
+  const [cx, cy] = clientXY(e);
+  if (handle) {
+    const id = +handle.dataset.elid;
+    const el = S.canvasEls.find(e=>e.id===id); if (!el) return;
+    _drag = {type:'resize', id, dir:handle.dataset.dir, sx:cx, sy:cy, ox:el.x, oy:el.y, ow:el.w, oh:el.h};
+  } else {
+    const id = +celDiv.dataset.elid;
+    const el = S.canvasEls.find(e=>e.id===id); if (!el) return;
+    set({selectedEl: id});
+    _drag = {type:'drag', id, sx:cx, sy:cy, ox:el.x, oy:el.y};
+  }
+}
+
+function onMove(e) {
+  if (!_drag) return;
   if (e.cancelable) e.preventDefault();
-  const cx = e.clientX ?? e.touches?.[0]?.clientX;
-  const cy = e.clientY ?? e.touches?.[0]?.clientY;
-  const dx = cx - dragState.sx;
-  const dy = cy - dragState.sy;
-
-  setState(s => ({
+  const [cx, cy] = clientXY(e);
+  const dx = cx - _drag.sx, dy = cy - _drag.sy;
+  setQuiet(s => ({
     canvasEls: s.canvasEls.map(el => {
-      if (el.id !== dragState.id) return el;
-      if (dragState.type === 'drag') {
-        return { ...el,
-          x: Math.max(0, Math.min(CANVAS_W - el.w, dragState.ox + dx)),
-          y: Math.max(0, Math.min(CANVAS_H - el.h, dragState.oy + dy))
+      if (el.id !== _drag.id) return el;
+      if (_drag.type === 'drag') {
+        return {...el,
+          x: Math.max(0, Math.min(CW - el.w, _drag.ox + dx)),
+          y: Math.max(0, Math.min(CH - el.h, _drag.oy + dy))
         };
       }
-      if (dragState.type === 'resize') {
-        const dir = dragState.dir;
-        let nx=dragState.ox, ny=dragState.oy, nw=dragState.ow, nh=dragState.oh;
-        if (dir.includes('e')) nw = Math.max(30, dragState.ow + dx);
-        if (dir.includes('s')) nh = Math.max(20, dragState.oh + dy);
-        if (dir.includes('w')) { nw = Math.max(30, dragState.ow - dx); nx = dragState.ox + dragState.ow - nw; }
-        if (dir.includes('n')) { nh = Math.max(20, dragState.oh - dy); ny = dragState.oy + dragState.oh - nh; }
-        return { ...el, x: nx, y: ny, w: nw, h: nh };
-      }
-      return el;
+      // resize
+      const d = _drag.dir;
+      let nx=_drag.ox, ny=_drag.oy, nw=_drag.ow, nh=_drag.oh;
+      if (d.includes('e')) nw = Math.max(24, _drag.ow + dx);
+      if (d.includes('s')) nh = Math.max(20, _drag.oh + dy);
+      if (d.includes('w')) { nw = Math.max(24, _drag.ow - dx); nx = _drag.ox + _drag.ow - nw; }
+      if (d.includes('n')) { nh = Math.max(20, _drag.oh - dy); ny = _drag.oy + _drag.oh - nh; }
+      return {...el, x:nx, y:ny, w:nw, h:nh};
     })
   }));
 }
 
-function onPointerUp() { dragState = null; }
+function onUp() { _drag = null; }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-function uid() { return Date.now() + Math.random(); }
+// ─────────────────────────────────────────────
+// CANVAS PATCH  — only repositions elements, no full re-render
+// ─────────────────────────────────────────────
+function patchCanvas() {
+  S.canvasEls.filter(e=>e.visible).forEach(el => {
+    const div = document.querySelector(`.cel[data-elid="${el.id}"]`);
+    if (!div) return;
+    div.style.left   = el.x + 'px';
+    div.style.top    = el.y + 'px';
+    div.style.width  = el.w + 'px';
+    div.style.height = el.h + 'px';
+    // update emoji font size during resize
+    if (el.kind === 'emoji') {
+      const sp = div.querySelector('span');
+      if (sp) sp.style.fontSize = Math.max(8, el.h * 0.75) + 'px';
+    }
+    if (el.kind === 'caption') {
+      const sp = div.querySelector('span');
+      if (sp) sp.style.fontSize = Math.max(8, el.h * 0.5) + 'px';
+    }
+  });
+}
 
+// ─────────────────────────────────────────────
+// CANVAS ELEMENT FACTORY
+// ─────────────────────────────────────────────
+function makeCelDOM(el) {
+  const div = document.createElement('div');
+  div.className = 'cel' + (S.selectedEl === el.id ? ' sel' : '');
+  div.dataset.elid = el.id;
+  div.style.cssText = `left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;opacity:${el.opacity??1};z-index:${S.selectedEl===el.id?20:10};display:flex;align-items:center;justify-content:center;`;
+
+  if (el.kind === 'pip') {
+    const img = document.createElement('img');
+    img.src = el.url;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none;display:block;';
+    div.appendChild(img);
+  } else if (el.kind === 'emoji') {
+    const sp = document.createElement('span');
+    sp.textContent = el.label;
+    sp.style.cssText = `font-size:${Math.max(8,el.h*0.75)}px;line-height:1;pointer-events:none;user-select:none;`;
+    div.appendChild(sp);
+  } else if (el.kind === 'shape') {
+    const inner = document.createElement('div');
+    const circ = el.label === 'Circle';
+    inner.style.cssText = `width:100%;height:100%;background:${el.fill||'rgba(255,60,126,0.35)'};border:2px solid ${el.stroke||'#ff3c7e'};border-radius:${circ?'50%':'8px'};pointer-events:none;`;
+    div.appendChild(inner);
+  } else if (el.kind === 'caption') {
+    const sp = document.createElement('span');
+    sp.textContent = el.label;
+    sp.style.cssText = `font-size:${Math.max(8,el.h*0.5)}px;font-weight:700;color:${el.color||'#ff3c7e'};text-shadow:1px 1px 6px rgba(0,0,0,0.95);pointer-events:none;user-select:none;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;`;
+    div.appendChild(sp);
+  }
+
+  if (S.selectedEl === el.id) {
+    ['se','sw','ne','nw'].forEach(dir => {
+      const h = document.createElement('div');
+      h.className = `rh ${dir}`;
+      h.dataset.dir = dir;
+      h.dataset.elid = el.id;
+      div.appendChild(h);
+    });
+    const del = document.createElement('button');
+    del.className = 'del-btn';
+    del.textContent = '×';
+    del.dataset.elid = el.id;
+    del.addEventListener('mousedown', e => { e.stopPropagation(); deleteEl(el.id); });
+    del.addEventListener('touchstart', e => { e.stopPropagation(); deleteEl(el.id); }, {passive:false});
+    div.appendChild(del);
+  }
+  return div;
+}
+
+// ─────────────────────────────────────────────
+// MEDIA HELPERS
+// ─────────────────────────────────────────────
 function addCanvasEl(kind, props) {
   const id = uid();
-  const el = { id, kind, visible: true, opacity: 1, x: 30, y: 80, w: 100, h: 80, ...props };
-  setState(s => ({ canvasEls: [...s.canvasEls, el], selectedEl: id }));
+  const el = {id, kind, visible:true, opacity:1, x:30, y:80, w:100, h:80, ...props};
+  set(s => ({canvasEls:[...s.canvasEls, el], selectedEl:id}));
 }
 
 function updateEl(id, patch) {
-  setState(s => ({ canvasEls: s.canvasEls.map(e => e.id === id ? { ...e, ...patch } : e) }));
+  set(s => ({canvasEls: s.canvasEls.map(e => e.id===id ? {...e,...patch} : e)}));
 }
 
 function deleteEl(id) {
-  setState(s => ({ canvasEls: s.canvasEls.filter(e => e.id !== id), selectedEl: s.selectedEl === id ? null : s.selectedEl }));
+  set(s => ({canvasEls: s.canvasEls.filter(e=>e.id!==id), selectedEl: s.selectedEl===id ? null : s.selectedEl}));
 }
 
 function addClip(files, type) {
-  const newClips = Array.from(files).map(f => ({
-    id: uid(), name: f.name, url: URL.createObjectURL(f), type,
-    trimStart: 0, trimEnd: null, duration: null
-  }));
-  setState(s => ({ clips: [...s.clips, ...newClips] }));
-  if (type === 'VID' && newClips.length > 0) {
-    setTimeout(() => {
-      const v = document.getElementById('preview-video');
-      if (v) {
-        v.onloadedmetadata = () => {
-          setState(s => ({
-            clips: s.clips.map(c => c.id === newClips[0].id ? { ...c, trimEnd: v.duration, duration: v.duration } : c)
-          }));
-        };
-      }
-    }, 300);
-  }
+  Array.from(files).forEach(f => {
+    const id = uid();
+    const url = URL.createObjectURL(f);
+    const clip = {id, name:f.name, url, type, trimStart:0, trimEnd:null, duration:null};
+    set(s => ({clips:[...s.clips, clip]}));
+    if (type === 'VID') {
+      // probe duration without affecting preview
+      const probe = document.createElement('video');
+      probe.preload = 'metadata';
+      probe.src = url;
+      probe.onloadedmetadata = () => {
+        set(s => ({clips: s.clips.map(c => c.id===id ? {...c, duration:probe.duration, trimEnd:probe.duration} : c)}));
+        probe.remove();
+      };
+    }
+  });
 }
 
-// ── AUDIO ──────────────────────────────────────────────────────────────────
 function handleAudioUpload(file) {
   const url = URL.createObjectURL(file);
-  setState({ audioFile: file.name, audioUrl: url });
-  if (audioEl) { audioEl.src = url; }
+  if (_audioEl) { _audioEl.pause(); _audioEl.src = ''; }
+  _audioEl = new Audio(url);
+  _audioEl.volume = S.volume;
+  _audioEl.muted = S.muted;
+  set({audioName: file.name, audioUrl: url});
 }
 
-// ── VIDEO CONTROLS ─────────────────────────────────────────────────────────
 function syncVolume() {
   const v = document.getElementById('preview-video');
-  if (v) { v.volume = state.volume; v.muted = state.muted; }
-  if (audioEl) { audioEl.volume = state.volume; audioEl.muted = state.muted; }
+  if (v) { v.volume = S.volume; v.muted = S.muted; }
+  if (_audioEl) { _audioEl.volume = S.volume; _audioEl.muted = S.muted; }
 }
 
 function playAll() {
   const v = document.getElementById('preview-video');
   syncVolume();
-  if (v) v.play();
-  if (audioEl && state.audioUrl) audioEl.play();
-  setState({ playing: true });
+  if (v) { v.currentTime = S.clips.find(c=>c.type==='VID')?.trimStart || 0; v.play(); }
+  if (_audioEl) { _audioEl.currentTime = 0; _audioEl.play(); }
+  set({playing:true});
 }
 
 function stopAll() {
   const v = document.getElementById('preview-video');
-  if (v) { v.pause(); v.currentTime = state.clips.find(c=>c.type==='VID')?.trimStart || 0; }
-  if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; }
-  setState({ playing: false });
+  if (v) { v.pause(); v.currentTime = S.clips.find(c=>c.type==='VID')?.trimStart || 0; }
+  if (_audioEl) { _audioEl.pause(); _audioEl.currentTime = 0; }
+  set({playing:false});
 }
 
-// ── AI CAPTIONS ────────────────────────────────────────────────────────────
+// Enforce trim bounds during playback
+setInterval(() => {
+  if (!S.playing) return;
+  const v = document.getElementById('preview-video');
+  const vid = S.clips.find(c=>c.type==='VID');
+  if (v && vid && vid.trimEnd && v.currentTime >= vid.trimEnd) {
+    v.currentTime = vid.trimStart || 0;
+  }
+}, 250);
+
+// ─────────────────────────────────────────────
+// AI CAPTIONS
+// ─────────────────────────────────────────────
 async function generateCaptions() {
-  if (!state.apiKey) { setState({ showApiKey: true }); return; }
-  setState({ generating: true, generatedCaption: '' });
+  if (!S.apiKey) { set({showApiKey:true}); return; }
+  set({generating:true, generatedCaption:''});
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': state.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800,
-        messages: [{ role: 'user', content: `Generate 3 short punchy social media reel captions for a ${state.niche} reel about "${state.brief || 'general content'}". Each 1-2 lines with emojis. Numbered list.` }] })
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+        messages:[{role:'user',content:`Generate 3 short punchy social media reel captions for a ${S.niche} reel about "${S.brief||'general content'}". Each under 2 lines with emojis. Numbered list.`}]})
     });
-    const data = await res.json();
-    setState({ generatedCaption: data.content?.find(b => b.type === 'text')?.text || 'No captions returned.' });
-  } catch(err) { setState({ generatedCaption: 'Error: ' + err.message }); }
-  setState({ generating: false });
+    const d = await res.json();
+    set({generatedCaption: d.content?.find(b=>b.type==='text')?.text || 'No captions returned.'});
+  } catch(err) { set({generatedCaption:'Error: '+err.message}); }
+  set({generating:false});
 }
 
-// ── EXPORT ─────────────────────────────────────────────────────────────────
 function startExport() {
-  setState({ exporting: true, exportDone: false, exportProgress: 0 });
+  set({exporting:true, exportDone:false, exportProgress:0});
   let p = 0;
   const iv = setInterval(() => {
-    p += Math.random() * 12 + 4;
-    if (p >= 100) { clearInterval(iv); setState({ exportProgress: 100 }); setTimeout(() => setState({ exporting: false, exportDone: true }), 400); }
-    else setState({ exportProgress: Math.round(p) });
-  }, 220);
+    p += Math.random()*12+4;
+    if (p>=100) { clearInterval(iv); set({exportProgress:100}); setTimeout(()=>set({exporting:false,exportDone:true}),400); }
+    else set({exportProgress:Math.round(p)});
+  },220);
 }
 
-// ── RENDER ─────────────────────────────────────────────────────────────────
-function render() {
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderApp() {
   const app = document.getElementById('app');
+
+  // ── Before wiping, persist video playback state ──
+  const oldVid = document.getElementById('preview-video');
+  const preservedTime = oldVid ? oldVid.currentTime : 0;
+
   app.innerHTML = '';
-  app.appendChild(buildUI());
-  // re-attach video ref
-  const v = document.getElementById('preview-video');
-  if (v) { v.volume = state.volume; v.muted = state.muted; }
-  // audio
-  if (!audioEl && state.audioUrl) {
-    audioEl = new Audio(state.audioUrl);
-    audioEl.volume = state.volume;
-    audioEl.muted = state.muted;
-  }
-}
-
-// ── CANVAS ELEMENTS render (DOM, not innerHTML) ────────────────────────────
-function makeCanvasEl(el) {
-  const div = document.createElement('div');
-  div.className = 'canvas-el' + (state.selectedEl === el.id ? ' selected' : '');
-  div.style.cssText = `left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;opacity:${el.opacity};z-index:${state.selectedEl===el.id?15:10};display:flex;align-items:center;justify-content:center;`;
-
-  // content
-  if (el.kind === 'pip') {
-    const img = document.createElement('img');
-    img.src = el.url;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:6px;pointer-events:none;';
-    div.appendChild(img);
-  } else if (el.kind === 'emoji') {
-    const span = document.createElement('span');
-    span.textContent = el.label;
-    span.style.cssText = `font-size:${el.h*0.7}px;line-height:1;user-select:none;pointer-events:none;`;
-    div.appendChild(span);
-  } else if (el.kind === 'shape') {
-    const inner = document.createElement('div');
-    const isCirc = el.label === 'Circle';
-    inner.style.cssText = `width:100%;height:100%;background:${el.fill||'rgba(255,60,126,0.4)'};border:2px solid ${el.stroke||'#ff3c7e'};border-radius:${isCirc?'50%':'8px'};pointer-events:none;`;
-    div.appendChild(inner);
-  } else if (el.kind === 'caption') {
-    const span = document.createElement('span');
-    span.textContent = el.label;
-    span.style.cssText = `font-size:${Math.max(10,el.h*0.45)}px;font-weight:700;color:${el.color||'#ff3c7e'};text-shadow:1px 1px 4px rgba(0,0,0,0.9);user-select:none;pointer-events:none;white-space:nowrap;`;
-    div.appendChild(span);
-  }
-
-  // drag
-  div.addEventListener('mousedown', e => startDrag(e, el.id));
-  div.addEventListener('touchstart', e => startDrag(e, el.id), { passive: false });
-
-  // resize handles
-  if (state.selectedEl === el.id) {
-    [['se','rh-se'],['sw','rh-sw'],['ne','rh-ne'],['nw','rh-nw']].forEach(([dir,cls]) => {
-      const h = document.createElement('div');
-      h.className = `rh ${cls}`;
-      h.addEventListener('mousedown', e => startResize(e, el.id, dir));
-      h.addEventListener('touchstart', e => startResize(e, el.id, dir), { passive: false });
-      div.appendChild(h);
-    });
-    // delete btn
-    const del = document.createElement('button');
-    del.textContent = '×';
-    del.style.cssText = 'position:absolute;top:-10px;right:-10px;width:20px;height:20px;border-radius:50%;background:#ef4444;border:2px solid #fff;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:101;';
-    del.addEventListener('mousedown', e => { e.stopPropagation(); deleteEl(el.id); });
-    div.appendChild(del);
-  }
-
-  return div;
-}
-
-// ── TRIM SLIDER ────────────────────────────────────────────────────────────
-function makeTrimSlider(clip) {
-  const dur = clip.duration || 60;
-  const trimEnd = clip.trimEnd ?? dur;
-  const div = document.createElement('div');
-  div.style.cssText = 'margin-top:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;';
-  div.innerHTML = `
-    <div style="font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;">✂ Trim: ${clip.trimStart.toFixed(1)}s → ${trimEnd.toFixed(1)}s</div>
-    <div style="margin-bottom:6px;">
-      <label style="font-size:10px;color:rgba(255,255,255,0.4);">Start</label>
-      <input type="range" min="0" max="${dur}" step="0.1" value="${clip.trimStart}" style="width:100%;background:linear-gradient(to right,#ff3c7e ${clip.trimStart/dur*100}%,rgba(255,255,255,0.15) 0)" id="trim-start-${clip.id}"/>
-    </div>
-    <div>
-      <label style="font-size:10px;color:rgba(255,255,255,0.4);">End</label>
-      <input type="range" min="0" max="${dur}" step="0.1" value="${trimEnd}" style="width:100%;background:linear-gradient(to right,#a855f7 ${trimEnd/dur*100}%,rgba(255,255,255,0.15) 0)" id="trim-end-${clip.id}"/>
-    </div>`;
-  setTimeout(() => {
-    const s = document.getElementById(`trim-start-${clip.id}`);
-    const e2 = document.getElementById(`trim-end-${clip.id}`);
-    if (s) s.addEventListener('input', ev => {
-      const val = Math.min(+ev.target.value, (clip.trimEnd ?? dur) - 0.5);
-      setState(st => ({ clips: st.clips.map(c => c.id === clip.id ? { ...c, trimStart: val } : c) }));
-      const v = document.getElementById('preview-video');
-      if (v) v.currentTime = val;
-    });
-    if (e2) e2.addEventListener('input', ev => {
-      const val = Math.max(+ev.target.value, clip.trimStart + 0.5);
-      setState(st => ({ clips: st.clips.map(c => c.id === clip.id ? { ...c, trimEnd: val } : c) }));
-    });
-  }, 0);
-  return div;
-}
-
-// ── BUILD UI ───────────────────────────────────────────────────────────────
-function buildUI() {
-  const root = document.createElement('div');
-  root.style.cssText = 'min-height:100vh;background:#0d0d18;';
+  const root = D('div','min-height:100vh;background:#0d0d18;');
 
   // Header
-  const hdr = document.createElement('div');
-  hdr.style.cssText = 'text-align:center;padding:36px 20px 24px;';
-  hdr.innerHTML = `<h1 style="font-size:clamp(36px,7vw,64px);font-weight:900;letter-spacing:-.02em;line-height:1;"><span style="color:#ff3c7e">REEL </span><span style="color:#fff">MAKER</span></h1><p style="font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,0.35);margin-top:10px;text-transform:uppercase;">SEQUENCE · STYLE · OVERLAY · DOWNLOAD</p>`;
+  const hdr = D('div','text-align:center;padding:36px 20px 24px;');
+  hdr.innerHTML = `<h1 style="font-size:clamp(36px,7vw,60px);font-weight:900;letter-spacing:-.02em;line-height:1;"><span style="color:#ff3c7e">REEL </span><span style="color:#fff">MAKER</span></h1><p style="font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,0.35);margin-top:10px;text-transform:uppercase;">SEQUENCE · STYLE · OVERLAY · DOWNLOAD</p>`;
   root.appendChild(hdr);
 
-  // API key banner
-  if (state.showApiKey) {
-    const banner = el('div','','max-width:1200px;margin:0 auto 16px;padding:0 20px;');
-    const inner = el('div','','background:rgba(255,60,126,0.08);border:1px solid rgba(255,60,126,0.25);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;');
-    inner.innerHTML = `<span style="font-size:13px;color:rgba(255,255,255,0.7);flex:1;">🔑 Anthropic API key for AI captions:</span>`;
-    const inp = input('password', state.apiKey, v => setState({ apiKey: v }), 'sk-ant-...', 'flex:0 0 280px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,60,126,0.3);border-radius:7px;color:#fff;font-size:13px;padding:8px 12px;outline:none;');
-    const btn = button('Save','padding:8px 16px;border-radius:7px;background:#ff3c7e;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;', () => setState({ showApiKey: false }));
-    inner.appendChild(inp); inner.appendChild(btn);
-    banner.appendChild(inner); root.appendChild(banner);
+  // API Key banner
+  if (S.showApiKey) {
+    const b = D('div','max-width:1200px;margin:0 auto 16px;padding:0 20px;');
+    const bi = D('div','background:rgba(255,60,126,0.08);border:1px solid rgba(255,60,126,0.25);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;');
+    bi.innerHTML = `<span style="font-size:13px;color:rgba(255,255,255,0.7);flex:1;">🔑 Anthropic API key for AI captions:</span>`;
+    const ki = makeInput('password', S.apiKey, v=>set({apiKey:v}), 'sk-ant-...', 'flex:0 0 260px;');
+    const kb = makeBtn('Save','padding:8px 16px;border-radius:7px;background:#ff3c7e;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;',()=>set({showApiKey:false}));
+    bi.appendChild(ki); bi.appendChild(kb); b.appendChild(bi); root.appendChild(b);
   }
 
-  // Main layout
-  const main = el('div','','display:flex;gap:16px;padding:0 20px 60px;max-width:1200px;margin:0 auto;align-items:flex-start;');
+  // Two-column layout
+  const layout = D('div','display:flex;gap:16px;padding:0 20px 60px;max-width:1200px;margin:0 auto;align-items:flex-start;');
+  const left = D('div','flex:0 0 540px;min-width:0;');
+  const right = D('div','flex:1;min-width:0;position:sticky;top:20px;');
 
-  // ── LEFT ──
-  const left = el('div','','flex:0 0 540px;min-width:0;');
+  // ────────────── LEFT ──────────────
 
-  // 1. Media
+  // § Media Sequence
   left.appendChild(makeSection('1','Media Sequence', () => {
-    const wrap = document.createElement('div');
-    const row = el('div','','display:flex;gap:10px;margin-bottom:16px;');
-    row.appendChild(makeUploadBox('🎬','Add Video(s)','MP4 · MOV · WebM','video/*',true,files => addClip(files,'VID')));
-    row.appendChild(makeUploadBox('🖼️','Add Image(s)','JPG · PNG · WebP','image/*',true,files => addClip(files,'IMG')));
-    wrap.appendChild(row);
-
-    if (state.clips.length > 0) {
-      const bar = el('div','','display:flex;justify-content:space-between;margin-bottom:8px;');
-      bar.innerHTML = `<span style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.35);text-transform:uppercase;">Playback Order</span><span style="font-size:10px;color:rgba(255,255,255,0.25);">click × to remove</span>`;
-      wrap.appendChild(bar);
-      const thumbs = el('div','','display:flex;gap:8px;flex-wrap:wrap;');
-      state.clips.forEach(clip => {
-        const card2 = el('div','','position:relative;');
-        const box = el('div','','width:72px;height:72px;border-radius:8px;overflow:hidden;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);');
-        if (clip.type === 'IMG') {
-          const img = document.createElement('img');
-          img.src = clip.url; img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-          box.appendChild(img);
-        } else {
-          const v = document.createElement('video');
-          v.src = clip.url; v.muted = true; v.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-          box.appendChild(v);
+    const w = D('div');
+    const row = D('div','display:flex;gap:10px;margin-bottom:16px;');
+    row.appendChild(makeUploadBox('🎬','Add Video(s)','MP4 · MOV · WebM','video/*',true, f=>addClip(f,'VID')));
+    row.appendChild(makeUploadBox('🖼️','Add Image(s)','JPG · PNG · WebP','image/*',true, f=>addClip(f,'IMG')));
+    w.appendChild(row);
+    if (S.clips.length) {
+      const bar = D('div','display:flex;justify-content:space-between;margin-bottom:8px;');
+      bar.innerHTML=`<span style="font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.35);text-transform:uppercase;">Clips</span><span style="font-size:10px;color:rgba(255,255,255,0.25);">× remove</span>`;
+      w.appendChild(bar);
+      const thumbs = D('div','display:flex;flex-wrap:wrap;gap:12px;');
+      S.clips.forEach(clip => {
+        const card = D('div','position:relative;flex:0 0 auto;');
+        const box = D('div','width:72px;height:72px;border-radius:8px;overflow:hidden;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);');
+        if (clip.type==='IMG') { const img=document.createElement('img'); img.src=clip.url; img.style.cssText='width:100%;height:100%;object-fit:cover;'; box.appendChild(img); }
+        else { const v=document.createElement('video'); v.src=clip.url; v.muted=true; v.style.cssText='width:100%;height:100%;object-fit:cover;'; box.appendChild(v); }
+        card.appendChild(box);
+        const badge=D('div','position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.75);border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;');
+        badge.style.color=clip.type==='VID'?'#60a5fa':'#a78bfa'; badge.textContent=clip.type; card.appendChild(badge);
+        const xb=makeBtn('×','position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;',
+          ()=>set(s=>({clips:s.clips.filter(c=>c.id!==clip.id)})));
+        card.appendChild(xb);
+        const dur=D('div','text-align:center;font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;');
+        dur.textContent=clip.duration?clip.duration.toFixed(1)+'s':(clip.type==='VID'?'loading…':'img');
+        card.appendChild(dur);
+        // Trim sliders for videos
+        if (clip.type==='VID') {
+          const trim = makeTrimUI(clip);
+          card.appendChild(trim);
         }
-        card2.appendChild(box);
-        const badge = el('div','','position:absolute;top:3px;left:3px;background:rgba(0,0,0,0.7);border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;');
-        badge.style.color = clip.type==='VID'?'#60a5fa':'#a78bfa';
-        badge.textContent = clip.type;
-        card2.appendChild(badge);
-        const xbtn = el('button','','position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:#ef4444;border:none;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;');
-        xbtn.textContent='×'; xbtn.onclick = () => setState(s => ({ clips: s.clips.filter(c => c.id!==clip.id) }));
-        card2.appendChild(xbtn);
-        const dur = el('div','','text-align:center;font-size:10px;color:rgba(255,255,255,0.5);margin-top:3px;');
-        dur.textContent = clip.duration ? clip.duration.toFixed(1)+'s' : (clip.type==='VID'?'...':'5.0s');
-        card2.appendChild(dur);
-        thumbs.appendChild(card2);
-        // trim for videos
-        if (clip.type === 'VID') card2.appendChild(makeTrimSlider(clip));
+        thumbs.appendChild(card);
       });
-      wrap.appendChild(thumbs);
-      const total = el('div','','margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);');
-      total.textContent = `${state.clips.length} clip${state.clips.length!==1?'s':''} total`;
-      wrap.appendChild(total);
+      w.appendChild(thumbs);
     }
-    return wrap;
+    return w;
   }));
 
-  // PiP
+  // § PiP
   left.appendChild(makeSection('↗','Picture-in-Picture', () => {
-    const wrap = document.createElement('div');
-    wrap.appendChild(makeUploadBox('🖼️+','Add overlay image','Drops into preview — drag & resize freely','image/*',false,files => {
-      const f = files[0]; if (!f) return;
-      const url = URL.createObjectURL(f);
-      addCanvasEl('pip', { label: f.name, url, x: 20, y: 20, w: 90, h: 90 });
+    const w = D('div');
+    w.appendChild(makeUploadBox('🖼️+','Add overlay image','Drops into preview · drag & resize','image/*',false, files => {
+      const f=files[0]; if(!f) return;
+      addCanvasEl('pip',{label:f.name, url:URL.createObjectURL(f), x:20, y:20, w:90, h:90});
     }));
-    const count = state.canvasEls.filter(e=>e.kind==='pip').length;
-    if (count > 0) {
-      const note = el('div','','margin-top:8px;font-size:11px;color:rgba(255,255,255,0.4);');
-      note.textContent = `${count} overlay image${count>1?'s':''} · click in preview to select & resize`;
-      wrap.appendChild(note);
+    const pips = S.canvasEls.filter(e=>e.kind==='pip');
+    if (pips.length) {
+      const note=D('div','margin-top:8px;font-size:11px;color:rgba(255,255,255,0.4);');
+      note.textContent=`${pips.length} overlay image${pips.length>1?'s':''} · select in preview to move/resize`;
+      w.appendChild(note);
     }
-    return wrap;
+    return w;
   }));
 
-  // 2. Caption Brief
+  // § Caption Brief
   left.appendChild(makeSection('2','Caption Brief', () => {
-    const wrap = document.createElement('div');
-    wrap.appendChild(label('What\'s your reel about?'));
-    wrap.appendChild(textarea(state.brief, v => setState({ brief: v }), 'e.g. food, fitness tips...'));
-    wrap.appendChild(label('Niche', 14));
-    const niches = el('div','','display:flex;flex-wrap:wrap;gap:6px;');
-    NICHES.forEach(n => {
-      const b = pillButton(n, state.niche===n, '#ff3c7e', () => setState({ niche: n }));
-      niches.appendChild(b);
+    const w = D('div');
+    w.appendChild(fieldLabel("What's your reel about?"));
+    const ta=document.createElement('textarea');
+    ta.value=S.brief; ta.placeholder='e.g. fitness tips, travel vlog…';
+    ta.className='text-input'; ta.style.minHeight='60px'; ta.style.resize='vertical';
+    ta.oninput=e=>set({brief:e.target.value});
+    w.appendChild(ta);
+    w.appendChild(fieldLabel('Niche',14));
+    const nr=D('div','display:flex;flex-wrap:wrap;gap:6px;');
+    NICHES.forEach(n=>{
+      const b=makeBtn(n,`padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid ${S.niche===n?'#ff3c7e':'rgba(255,255,255,0.12)'};background:${S.niche===n?'rgba(255,60,126,0.15)':'transparent'};color:${S.niche===n?'#ff3c7e':'rgba(255,255,255,0.6)'};`,()=>set({niche:n}));
+      nr.appendChild(b);
     });
-    wrap.appendChild(niches);
-    wrap.appendChild(label('Caption Text', 14));
-    const crow = el('div','','display:flex;gap:8px;');
-    crow.appendChild(input('text', state.caption, v => setState({ caption: v }), 'Your caption here...', 'flex:1;'));
-    const addBtn = button('+','padding:0 14px;border-radius:8px;background:rgba(255,60,126,0.15);border:1px solid #ff3c7e;color:#ff3c7e;font-size:18px;cursor:pointer;', () => {
-      if (state.caption) addCanvasEl('caption', { label: state.caption, color: ACCENT_MAP[state.accentColor]||'#ff3c7e', x:10, y:300, w:200, h:36 });
-    });
-    addBtn.title = 'Add caption to preview as draggable element';
-    crow.appendChild(addBtn);
-    wrap.appendChild(crow);
-    wrap.appendChild(label('Handle', 12));
-    wrap.appendChild(input('text', state.handle, v => setState({ handle: v }), '@yourhandle'));
-    return wrap;
+    w.appendChild(nr);
+    w.appendChild(fieldLabel('Caption Text',14));
+    const cr=D('div','display:flex;gap:8px;');
+    const ci=makeInput('text',S.caption,v=>set({caption:v}),'Your caption here…','flex:1;');
+    const ca=makeBtn('+','padding:0 14px;border-radius:8px;background:rgba(255,60,126,0.15);border:1px solid #ff3c7e;color:#ff3c7e;font-size:18px;cursor:pointer;height:42px;',
+      ()=>{ if(S.caption) addCanvasEl('caption',{label:S.caption,color:ACCENT[S.accentColor]||'#ff3c7e',x:10,y:300,w:200,h:36}); });
+    ca.title='Add caption to preview as moveable element';
+    cr.appendChild(ci); cr.appendChild(ca); w.appendChild(cr);
+    w.appendChild(fieldLabel('Handle',12));
+    w.appendChild(makeInput('text',S.handle,v=>set({handle:v}),'@yourhandle'));
+    return w;
   }));
 
-  // 3. Text Style
+  // § Text Style
   left.appendChild(makeSection('3','Text Style', () => {
-    const wrap = document.createElement('div');
-    const grid = el('div','','display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;');
-    TEXT_STYLES.forEach(ts => {
-      const b = el('button','','padding:12px 8px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;');
-      b.style.border = state.textStyle===ts.id ? '1.5px solid #ff3c7e' : '1.5px solid rgba(255,255,255,0.1)';
-      b.style.background = state.textStyle===ts.id ? 'rgba(255,60,126,0.1)' : 'rgba(255,255,255,0.03)';
-      const sp = document.createElement('span');
-      sp.style.cssText = `font-size:16px;font-weight:${ts.fw};`;
-      if (ts.grad) { sp.style.background='linear-gradient(90deg,#ff3c7e,#a855f7)'; sp.style.webkitBackgroundClip='text'; sp.style.webkitTextFillColor='transparent'; }
-      else if (ts.pill) { sp.style.background='#ff3c7e'; sp.style.borderRadius='999px'; sp.style.padding='2px 10px'; sp.style.color='#fff'; }
-      else { sp.style.color=ts.color; if (ts.shadow) sp.style.textShadow='3px 3px 0 #000'; }
-      sp.textContent = ts.label;
-      b.appendChild(sp);
-      const sub = el('span','','font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:.1em;');
-      sub.textContent = ts.id.toUpperCase();
-      b.appendChild(sub);
-      b.onclick = () => setState({ textStyle: ts.id });
-      grid.appendChild(b);
+    const w=D('div');
+    const grid=D('div','display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;');
+    TEXT_STYLES.forEach(ts=>{
+      const b=document.createElement('button');
+      b.style.cssText=`padding:12px 8px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;border:1.5px solid ${S.textStyle===ts.id?'#ff3c7e':'rgba(255,255,255,0.1)'};background:${S.textStyle===ts.id?'rgba(255,60,126,0.1)':'rgba(255,255,255,0.03)'};`;
+      const sp=document.createElement('span');
+      sp.style.cssText=`font-size:16px;font-weight:${ts.fw};`;
+      if(ts.grad){sp.style.background='linear-gradient(90deg,#ff3c7e,#a855f7)';sp.style.webkitBackgroundClip='text';sp.style.webkitTextFillColor='transparent';}
+      else if(ts.pill){sp.style.background='#ff3c7e';sp.style.borderRadius='999px';sp.style.padding='2px 10px';sp.style.color='#fff';}
+      else{sp.style.color=ts.color;if(ts.shadow)sp.style.textShadow='3px 3px 0 #000';}
+      sp.textContent=ts.label; b.appendChild(sp);
+      const sub=D('span','font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:.1em;');
+      sub.textContent=ts.id.toUpperCase(); b.appendChild(sub);
+      b.onclick=()=>set({textStyle:ts.id}); grid.appendChild(b);
     });
-    wrap.appendChild(grid);
-    wrap.appendChild(label('Font Size'));
-    wrap.appendChild(makeSlider(state.fontSize, 12, 96, v => setState({ fontSize: v }), `${state.fontSize}px`, '#ff3c7e', ['S','XL']));
-    wrap.appendChild(label('Accent Color', 14));
-    const arow = el('div','','display:flex;gap:6px;flex-wrap:wrap;');
-    Object.entries(ACCENT_MAP).forEach(([c,hex]) => arow.appendChild(pillButton(c, state.accentColor===c, hex, () => setState({ accentColor: c }))));
-    wrap.appendChild(arow);
-    return wrap;
+    w.appendChild(grid);
+    w.appendChild(fieldLabel('Font Size'));
+    w.appendChild(makeSlider(S.fontSize,12,96,v=>set({fontSize:v}),`${S.fontSize}px`,'#ff3c7e',['S','XL'],1));
+    w.appendChild(fieldLabel('Accent Color',14));
+    const ar=D('div','display:flex;gap:6px;flex-wrap:wrap;');
+    Object.entries(ACCENT).forEach(([c,hex])=>{
+      const b=makeBtn(c,`padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid ${S.accentColor===c?hex:'rgba(255,255,255,0.12)'};background:${S.accentColor===c?hex+'22':'transparent'};color:${S.accentColor===c?hex:'rgba(255,255,255,0.6)'};`,()=>set({accentColor:c}));
+      ar.appendChild(b);
+    });
+    w.appendChild(ar);
+    return w;
   }));
 
-  // 4. Overlays
+  // § Overlays
   left.appendChild(makeSection('4','Overlays', () => {
-    const wrap = document.createElement('div');
-    const items = [
-      {id:'vignette',label:'Vignette',icon:'🌑'},
-      {id:'bars',label:'Cinematic Black Bars',icon:'🎬'},
-      {id:'grain',label:'Film Grain',icon:'📽️'},
-      {id:'blur',label:'Edge Blur',icon:'🔆'},
-    ];
-    items.forEach(ov => {
-      const row = el('div','','padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);');
-      const top = el('div','','display:flex;align-items:center;justify-content:space-between;');
-      const lft = el('div','','display:flex;align-items:center;gap:10px;');
-      lft.innerHTML = `<span style="font-size:18px;">${ov.icon}</span><span style="font-size:13px;color:rgba(255,255,255,0.8);">${ov.label}</span>`;
+    const w=D('div');
+    [{id:'vignette',label:'Vignette',icon:'🌑'},{id:'bars',label:'Cinematic Black Bars',icon:'🎬'},{id:'grain',label:'Film Grain',icon:'📽️'},{id:'blur',label:'Edge Blur',icon:'🔆'}].forEach(ov=>{
+      const row=D('div','padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);');
+      const top=D('div','display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;');
+      const lft=D('div','display:flex;align-items:center;gap:10px;');
+      lft.innerHTML=`<span style="font-size:18px;">${ov.icon}</span><span style="font-size:13px;color:rgba(255,255,255,0.85);">${ov.label}</span>`;
       top.appendChild(lft);
-      top.appendChild(makeToggle(!!state.overlays[ov.id], () => setState(s => ({ overlays: { ...s.overlays, [ov.id]: !s.overlays[ov.id] } }))));
+      top.appendChild(makeToggle(S.overlays[ov.id],()=>set(s=>({overlays:{...s.overlays,[ov.id]:!s.overlays[ov.id]}}))));
       row.appendChild(top);
-      // opacity slider
-      const opRow = el('div','','display:flex;align-items:center;gap:10px;margin-top:8px;');
-      opRow.innerHTML = `<span style="font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;">Opacity</span>`;
-      const opSlider = makeSlider(state.overlayOpacity[ov.id], 0, 1, v => setState(s => ({ overlayOpacity: { ...s.overlayOpacity, [ov.id]: v } })), `${Math.round(state.overlayOpacity[ov.id]*100)}%`, '#a855f7', null, 0.01);
-      opRow.appendChild(opSlider);
+      const opRow=D('div','display:flex;align-items:center;gap:10px;');
+      const opL=D('span','font-size:10px;color:rgba(255,255,255,0.35);flex-shrink:0;'); opL.textContent='Opacity';
+      opRow.appendChild(opL);
+      opRow.appendChild(makeSlider(S.overlayOpacity[ov.id],0,1,v=>set(s=>({overlayOpacity:{...s.overlayOpacity,[ov.id]:v}})),`${Math.round(S.overlayOpacity[ov.id]*100)}%`,'#a855f7',null,0.01));
       row.appendChild(opRow);
-      wrap.appendChild(row);
+      w.appendChild(row);
     });
-    return wrap;
+    return w;
   }));
 
-  // 5. Shapes
+  // § Shapes
   left.appendChild(makeSection('5','Shapes & Covers', () => {
-    const wrap = document.createElement('div');
-    const row = el('div','','display:flex;gap:8px;');
-    ['Rectangle','Circle'].forEach(s => {
-      const b = button((s==='Rectangle'?'▭':'○')+' '+s,'padding:8px 18px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.7);transition:all .15s;',
-        () => addCanvasEl('shape', { label: s, x:40, y:140, w:120, h:s==='Circle'?80:60 }));
-      b.onmouseenter = () => { b.style.borderColor='#ff3c7e'; b.style.color='#fff'; };
-      b.onmouseleave = () => { b.style.borderColor='rgba(255,255,255,0.15)'; b.style.color='rgba(255,255,255,0.7)'; };
+    const w=D('div');
+    const row=D('div','display:flex;gap:8px;margin-bottom:12px;');
+    ['Rectangle','Circle'].forEach(s=>{
+      const b=makeBtn((s==='Rectangle'?'▭':'○')+' '+s,'padding:8px 18px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.7);transition:all .15s;',
+        ()=>addCanvasEl('shape',{label:s,x:40,y:140,w:120,h:s==='Circle'?80:60}));
+      b.onmouseenter=()=>{b.style.borderColor='#ff3c7e';b.style.color='#fff';};
+      b.onmouseleave=()=>{b.style.borderColor='rgba(255,255,255,0.15)';b.style.color='rgba(255,255,255,0.7)';};
       row.appendChild(b);
     });
-    wrap.appendChild(row);
-    // selected shape controls
-    const sel = state.canvasEls.find(e => e.id===state.selectedEl && e.kind==='shape');
-    if (sel) {
-      const ctrl = el('div','','margin-top:12px;padding:12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.08);');
-      ctrl.appendChild(label('Shape Opacity'));
-      ctrl.appendChild(makeSlider(sel.opacity??1, 0, 1, v => updateEl(sel.id, { opacity: v }), `${Math.round((sel.opacity??1)*100)}%`, '#ff3c7e', null, 0.01));
-      wrap.appendChild(ctrl);
+    w.appendChild(row);
+    // opacity slider for selected shape
+    const sel=S.canvasEls.find(e=>e.id===S.selectedEl&&e.kind==='shape');
+    if(sel){
+      const ctrl=D('div','padding:12px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.08);');
+      ctrl.appendChild(fieldLabel('Selected Shape Opacity'));
+      ctrl.appendChild(makeSlider(sel.opacity??1,0,1,v=>updateEl(sel.id,{opacity:v}),`${Math.round((sel.opacity??1)*100)}%`,'#ff3c7e',null,0.01));
+      w.appendChild(ctrl);
     }
-    return wrap;
+    return w;
   }));
 
-  // 6. Emojis
+  // § Emojis
   left.appendChild(makeSection('6','Emojis', () => {
-    const wrap = document.createElement('div');
-    const row = el('div','','display:flex;gap:8px;margin-bottom:12px;');
-    const inp = input('text', state.emojiInput, v => setState({ emojiInput: v }), 'Type or paste emoji...', 'flex:1;');
-    row.appendChild(inp);
-    row.appendChild(button('+ Add','padding:9px 16px;background:#ff3c7e;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;',
-      () => { if (state.emojiInput) { addCanvasEl('emoji',{label:state.emojiInput,x:60,y:160,w:state.emojiSize,h:state.emojiSize}); setState({ emojiInput:'' }); } }));
-    wrap.appendChild(row);
-    const grid = el('div','','display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;');
-    EMOJIS.forEach(em => {
-      const b = el('button','','font-size:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;width:36px;height:36px;cursor:pointer;transition:all .12s;');
-      b.textContent = em;
-      b.onmouseenter = () => { b.style.background='rgba(255,60,126,0.15)'; b.style.borderColor='#ff3c7e'; };
-      b.onmouseleave = () => { b.style.background='rgba(255,255,255,0.04)'; b.style.borderColor='rgba(255,255,255,0.08)'; };
-      b.onclick = () => addCanvasEl('emoji',{label:em,x:60,y:160,w:state.emojiSize,h:state.emojiSize});
+    const w=D('div');
+    const row=D('div','display:flex;gap:8px;margin-bottom:12px;');
+    const ei=makeInput('text',S.emojiInput,v=>set({emojiInput:v}),'Type or paste emoji…','flex:1;');
+    row.appendChild(ei);
+    row.appendChild(makeBtn('+ Add','padding:9px 16px;background:#ff3c7e;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;',
+      ()=>{ if(S.emojiInput){ addCanvasEl('emoji',{label:S.emojiInput,x:70,y:160,w:S.emojiSize,h:S.emojiSize}); set({emojiInput:''}); } }));
+    w.appendChild(row);
+    const grid=D('div','display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;');
+    EMOJIS.forEach(em=>{
+      const b=document.createElement('button');
+      b.textContent=em; b.style.cssText='font-size:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;width:36px;height:36px;cursor:pointer;transition:all .12s;';
+      b.onmouseenter=()=>{b.style.background='rgba(255,60,126,0.15)';b.style.borderColor='#ff3c7e';};
+      b.onmouseleave=()=>{b.style.background='rgba(255,255,255,0.04)';b.style.borderColor='rgba(255,255,255,0.08)';};
+      b.onclick=()=>addCanvasEl('emoji',{label:em,x:70,y:160,w:S.emojiSize,h:S.emojiSize});
       grid.appendChild(b);
     });
-    wrap.appendChild(grid);
-    wrap.appendChild(label('Size'));
-    wrap.appendChild(makeSlider(state.emojiSize, 16, 128, v => setState({ emojiSize: v }), `${state.emojiSize}px`, '#ff3c7e'));
-    return wrap;
+    w.appendChild(grid);
+    w.appendChild(fieldLabel('Size'));
+    w.appendChild(makeSlider(S.emojiSize,16,128,v=>set({emojiSize:v}),`${S.emojiSize}px`,'#ff3c7e',['S','XL'],1));
+    return w;
   }));
 
-  // 7. Voiceover / Audio
+  // § Audio
   left.appendChild(makeSection('7','Voiceover / Audio', () => {
-    const wrap = document.createElement('div');
-    const row = el('div','','display:flex;gap:10px;margin-bottom:10px;');
-    // record btn
-    const recBtn = button('🎙️ Record','flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;',
-      () => alert('Recording requires microphone access. Use the Upload Audio option for now.'));
-    recBtn.onmouseenter = () => { recBtn.style.borderColor='#ff3c7e'; recBtn.style.color='#fff'; };
-    recBtn.onmouseleave = () => { recBtn.style.borderColor='rgba(255,255,255,0.1)'; recBtn.style.color='rgba(255,255,255,0.75)'; };
-    row.appendChild(recBtn);
-    // upload audio
-    const uploadAudio = () => {
-      const inp = document.createElement('input');
-      inp.type='file'; inp.accept='audio/*';
-      inp.onchange = e => { if (e.target.files[0]) handleAudioUpload(e.target.files[0]); };
-      inp.click();
-    };
-    const upBtn = button('📁 Upload Audio','flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;', uploadAudio);
-    upBtn.onmouseenter = () => { upBtn.style.borderColor='#f59e0b'; upBtn.style.color='#fff'; };
-    upBtn.onmouseleave = () => { upBtn.style.borderColor='rgba(255,255,255,0.1)'; upBtn.style.color='rgba(255,255,255,0.75)'; };
-    row.appendChild(upBtn);
-    wrap.appendChild(row);
-    if (state.audioFile) {
-      const info = el('div','','padding:8px 12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;font-size:12px;color:#f59e0b;display:flex;align-items:center;justify-content:space-between;');
-      info.innerHTML = `<span>🎵 ${state.audioFile}</span>`;
-      const rmBtn = button('×','background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;', () => {
-        setState({ audioFile:null, audioUrl:null }); audioEl=null;
-      });
-      info.appendChild(rmBtn);
-      wrap.appendChild(info);
+    const w=D('div');
+    const row=D('div','display:flex;gap:10px;margin-bottom:10px;');
+    const rb=makeBtn('🎙️ Record','flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;',
+      ()=>alert('Microphone recording: use Upload Audio for now (mic access requires HTTPS + browser permission)'));
+    rb.onmouseenter=()=>{rb.style.borderColor='#ff3c7e';rb.style.color='#fff';};
+    rb.onmouseleave=()=>{rb.style.borderColor='rgba(255,255,255,0.1)';rb.style.color='rgba(255,255,255,0.75)';};
+    row.appendChild(rb);
+    const ub=makeBtn('📁 Upload Audio','flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;',
+      ()=>{ const i=document.createElement('input'); i.type='file'; i.accept='audio/*'; i.onchange=e=>{if(e.target.files[0]) handleAudioUpload(e.target.files[0]);}; i.click(); });
+    ub.onmouseenter=()=>{ub.style.borderColor='#f59e0b';ub.style.color='#fff';};
+    ub.onmouseleave=()=>{ub.style.borderColor='rgba(255,255,255,0.1)';ub.style.color='rgba(255,255,255,0.75)';};
+    row.appendChild(ub);
+    w.appendChild(row);
+    if(S.audioName){
+      const info=D('div','padding:8px 12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:8px;font-size:12px;color:#f59e0b;display:flex;align-items:center;justify-content:space-between;');
+      info.innerHTML=`<span>🎵 ${S.audioName}</span>`;
+      const rm=makeBtn('×','background:none;border:none;color:#ef4444;cursor:pointer;font-size:18px;padding:0;',()=>{ if(_audioEl){_audioEl.pause();_audioEl.src='';_audioEl=null;} set({audioName:null,audioUrl:null}); });
+      info.appendChild(rm); w.appendChild(info);
     }
-    return wrap;
+    return w;
   }));
 
-  // Generate Captions
-  const genBtn = button(state.generating ? '⏳ GENERATING…' : '✦ GENERATE CAPTIONS',
-    `width:100%;padding:16px;border-radius:12px;border:none;background:${state.generating?'rgba(255,60,126,0.4)':'linear-gradient(90deg,#ff3c7e,#a855f7)'};color:#fff;font-size:15px;font-weight:800;letter-spacing:.12em;cursor:${state.generating?'not-allowed':'pointer'};text-transform:uppercase;box-shadow:${state.generating?'none':'0 4px 24px rgba(255,60,126,0.35)'};margin-bottom:14px;`,
+  // Generate Captions btn
+  const genBtn=makeBtn(S.generating?'⏳ GENERATING…':'✦ GENERATE CAPTIONS',
+    `width:100%;padding:16px;border-radius:12px;border:none;background:${S.generating?'rgba(255,60,126,0.4)':'linear-gradient(90deg,#ff3c7e,#a855f7)'};color:#fff;font-size:15px;font-weight:800;letter-spacing:.12em;cursor:${S.generating?'not-allowed':'pointer'};text-transform:uppercase;box-shadow:${S.generating?'none':'0 4px 24px rgba(255,60,126,0.35)'};margin-bottom:14px;`,
     generateCaptions);
-  genBtn.disabled = state.generating;
-  left.appendChild(genBtn);
+  genBtn.disabled=S.generating; left.appendChild(genBtn);
 
-  if (state.generatedCaption) {
-    const capBox = el('div','','background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;');
-    capBox.innerHTML = `<div style="font-size:10px;color:rgba(168,85,247,0.8);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">✦ AI Generated Captions</div>`;
-    const pre = document.createElement('pre');
-    pre.style.cssText = 'margin:0;font-size:13px;color:rgba(255,255,255,0.85);white-space:pre-wrap;font-family:inherit;line-height:1.6;';
-    pre.textContent = state.generatedCaption;
-    capBox.appendChild(pre);
-    left.appendChild(capBox);
+  if(S.generatedCaption){
+    const gb=D('div','background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;');
+    gb.innerHTML=`<div style="font-size:10px;color:rgba(168,85,247,0.8);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">✦ AI Generated Captions</div>`;
+    const pre=document.createElement('pre');
+    pre.style.cssText='margin:0;font-size:13px;color:rgba(255,255,255,0.85);white-space:pre-wrap;font-family:inherit;line-height:1.6;';
+    pre.textContent=S.generatedCaption; gb.appendChild(pre); left.appendChild(gb);
   }
 
-  // 8. Export
+  // § Export
   left.appendChild(makeSection('8','Export & Download', () => {
-    const wrap = document.createElement('div');
-    wrap.appendChild(label('Format'));
-    const frow = el('div','','display:flex;gap:8px;margin-bottom:16px;');
-    ['MP4','MOV','GIF'].forEach(f => frow.appendChild(segButton(f, state.exportFormat===f, '#ff3c7e', () => setState({ exportFormat: f }))));
-    wrap.appendChild(frow);
-    wrap.appendChild(label('Quality'));
-    const qrow = el('div','','display:flex;gap:8px;margin-bottom:16px;');
-    ['720p','1080p','4K'].forEach(q => qrow.appendChild(segButton(q+(q==='4K'?' ⭐':''), state.exportQuality===q, '#a855f7', () => setState({ exportQuality: q }))));
-    wrap.appendChild(qrow);
-    const twoCol = el('div','','display:flex;gap:16px;margin-bottom:16px;');
-    const ratioCol = el('div','','flex:1;');
-    ratioCol.appendChild(label('Aspect Ratio'));
-    [['9:16','Reels/TikTok'],['1:1','Square'],['16:9','YouTube']].forEach(([r,hint]) => {
-      const b = el('button','','width:100%;margin-bottom:6px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;');
-      b.style.border = `1.5px solid ${state.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.08)'}`;
-      b.style.background = state.exportRatio===r?'rgba(6,182,212,0.1)':'rgba(255,255,255,0.02)';
-      b.style.color = state.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.5)';
-      const ico = el('div','','flex-shrink:0;');
-      ico.style.cssText = `width:${r==='9:16'?10:r==='1:1'?14:22}px;height:${r==='9:16'?16:r==='1:1'?14:10}px;border:2px solid ${state.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.3)'};border-radius:2px;`;
-      b.appendChild(ico);
-      b.insertAdjacentHTML('beforeend', `${r} <span style="font-size:9px;color:rgba(255,255,255,0.3);">· ${hint}</span>`);
-      b.onclick = () => setState({ exportRatio: r });
-      ratioCol.appendChild(b);
+    const w=D('div');
+    w.appendChild(fieldLabel('Format'));
+    const fr=D('div','display:flex;gap:8px;margin-bottom:16px;');
+    ['MP4','MOV','GIF'].forEach(f=>fr.appendChild(makeSegBtn(f,S.exportFormat===f,'#ff3c7e',()=>set({exportFormat:f}))));
+    w.appendChild(fr);
+    w.appendChild(fieldLabel('Quality'));
+    const qr=D('div','display:flex;gap:8px;margin-bottom:16px;');
+    ['720p','1080p','4K'].forEach(q=>qr.appendChild(makeSegBtn(q+(q==='4K'?' ⭐':''),S.exportQuality===q,'#a855f7',()=>set({exportQuality:q}))));
+    w.appendChild(qr);
+    const cols=D('div','display:flex;gap:16px;margin-bottom:16px;');
+    const rc=D('div','flex:1;');
+    rc.appendChild(fieldLabel('Aspect Ratio'));
+    [['9:16','Reels/TikTok'],['1:1','Square'],['16:9','YouTube']].forEach(([r,h])=>{
+      const b=makeBtn(`${r} · ${h}`,`width:100%;margin-bottom:6px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid ${S.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.08)'};background:${S.exportRatio===r?'rgba(6,182,212,0.1)':'rgba(255,255,255,0.02)'};color:${S.exportRatio===r?'#06b6d4':'rgba(255,255,255,0.5)'};`,()=>set({exportRatio:r}));
+      rc.appendChild(b);
     });
-    twoCol.appendChild(ratioCol);
-    const fpsCol = el('div','','flex:1;');
-    fpsCol.appendChild(label('Frame Rate'));
-    [['24fps','Cinematic'],['30fps',''],['60fps','Smooth']].forEach(([fps,hint]) => {
-      const b = el('button','','width:100%;margin-bottom:6px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;');
-      b.style.border = `1.5px solid ${state.exportFps===fps?'#f59e0b':'rgba(255,255,255,0.08)'}`;
-      b.style.background = state.exportFps===fps?'rgba(245,158,11,0.1)':'rgba(255,255,255,0.02)';
-      b.style.color = state.exportFps===fps?'#f59e0b':'rgba(255,255,255,0.5)';
-      b.textContent = fps + (hint ? ` · ${hint}` : '');
-      b.onclick = () => setState({ exportFps: fps });
-      fpsCol.appendChild(b);
+    cols.appendChild(rc);
+    const fc=D('div','flex:1;');
+    fc.appendChild(fieldLabel('Frame Rate'));
+    [['24fps','Cinematic'],['30fps','Standard'],['60fps','Smooth']].forEach(([f,h])=>{
+      const b=makeBtn(`${f} · ${h}`,`width:100%;margin-bottom:6px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid ${S.exportFps===f?'#f59e0b':'rgba(255,255,255,0.08)'};background:${S.exportFps===f?'rgba(245,158,11,0.1)':'rgba(255,255,255,0.02)'};color:${S.exportFps===f?'#f59e0b':'rgba(255,255,255,0.5)'};`,()=>set({exportFps:f}));
+      fc.appendChild(b);
     });
-    twoCol.appendChild(fpsCol);
-    wrap.appendChild(twoCol);
-    const summary = el('div','','background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;');
-    summary.innerHTML = `<span style="font-size:11px;color:rgba(255,255,255,0.4);">${state.exportRatio} · ${state.exportQuality} · ${state.exportFps} · ${state.exportFormat}</span><span style="font-size:11px;color:rgba(255,255,255,0.25);">~${state.exportQuality==='4K'?'800':state.exportQuality==='1080p'?'250':'80'}MB est.</span>`;
-    wrap.appendChild(summary);
-    if (state.exporting) {
-      const pg = el('div','','margin-bottom:14px;');
-      pg.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;color:rgba(255,255,255,0.5);">Rendering reel…</span><span style="font-size:11px;color:#ff3c7e;font-weight:700;">${state.exportProgress}%</span></div>`;
-      const track = el('div','','height:6px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;');
-      const fill = el('div','',`height:100%;width:${state.exportProgress}%;background:linear-gradient(90deg,#ff3c7e,#a855f7);border-radius:999px;transition:width .3s;`);
-      track.appendChild(fill); pg.appendChild(track);
-      wrap.appendChild(pg);
+    cols.appendChild(fc); w.appendChild(cols);
+    const sum=D('div','background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;');
+    sum.innerHTML=`<span style="font-size:11px;color:rgba(255,255,255,0.4);">${S.exportRatio} · ${S.exportQuality} · ${S.exportFps} · ${S.exportFormat}</span><span style="font-size:11px;color:rgba(255,255,255,0.25);">~${S.exportQuality==='4K'?'800':S.exportQuality==='1080p'?'250':'80'}MB est.</span>`;
+    w.appendChild(sum);
+    if(S.exporting){
+      const pg=D('div','margin-bottom:14px;');
+      pg.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:11px;color:rgba(255,255,255,0.5);">Rendering reel…</span><span style="font-size:11px;color:#ff3c7e;font-weight:700;">${S.exportProgress}%</span></div>`;
+      const track=D('div','height:6px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;');
+      const fill=D('div',`height:100%;width:${S.exportProgress}%;background:linear-gradient(90deg,#ff3c7e,#a855f7);border-radius:999px;transition:width .3s;`);
+      track.appendChild(fill); pg.appendChild(track); w.appendChild(pg);
     }
-    if (state.exportDone) {
-      const ok = el('div','','margin-bottom:14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;');
-      ok.innerHTML = '<span style="font-size:18px;">✅</span><span style="font-size:13px;color:#22c55e;font-weight:600;">Reel exported! Share below ↓</span>';
-      wrap.appendChild(ok);
+    if(S.exportDone){
+      const ok=D('div','margin-bottom:14px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;');
+      ok.innerHTML='<span style="font-size:18px;">✅</span><span style="font-size:13px;color:#22c55e;font-weight:600;">Reel exported! Share below ↓</span>';
+      w.appendChild(ok);
     }
-    const expBtn = button(state.exporting?`⏳ RENDERING… ${state.exportProgress}%`:state.exportDone?'⬇ DOWNLOAD REEL':'⬇ EXPORT REEL',
-      `width:100%;padding:15px;border-radius:12px;border:none;background:${state.exporting?'rgba(255,255,255,0.06)':'linear-gradient(90deg,#ff3c7e,#a855f7)'};color:${state.exporting?'rgba(255,255,255,0.4)':'#fff'};font-size:15px;font-weight:800;letter-spacing:.12em;cursor:${state.exporting?'not-allowed':'pointer'};text-transform:uppercase;box-shadow:${state.exporting?'none':'0 4px 24px rgba(255,60,126,0.35)'};`,
+    const eb=makeBtn(S.exporting?`⏳ RENDERING… ${S.exportProgress}%`:S.exportDone?'⬇ DOWNLOAD REEL':'⬇ EXPORT REEL',
+      `width:100%;padding:15px;border-radius:12px;border:none;background:${S.exporting?'rgba(255,255,255,0.06)':'linear-gradient(90deg,#ff3c7e,#a855f7)'};color:${S.exporting?'rgba(255,255,255,0.4)':'#fff'};font-size:15px;font-weight:800;letter-spacing:.12em;cursor:${S.exporting?'not-allowed':'pointer'};text-transform:uppercase;box-shadow:${S.exporting?'none':'0 4px 24px rgba(255,60,126,0.35)'};`,
       startExport);
-    expBtn.disabled = state.exporting;
-    wrap.appendChild(expBtn);
-    if (state.exportDone) {
-      const shareRow = el('div','','margin-top:10px;');
-      shareRow.innerHTML = '<div style="font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;text-align:center;">Open upload page to share</div>';
-      const sr = el('div','','display:flex;gap:8px;');
-      [{label:'Instagram',color:'#e1306c',icon:'📸',url:'https://www.instagram.com/reels/'},{label:'TikTok',color:'#69c9d0',icon:'🎵',url:'https://www.tiktok.com/upload'},{label:'YouTube',color:'#ff0000',icon:'▶️',url:'https://studio.youtube.com/'}].forEach(s => {
-        const a = document.createElement('a');
-        a.href=s.url; a.target='_blank'; a.rel='noopener noreferrer';
+    eb.disabled=S.exporting; w.appendChild(eb);
+    if(S.exportDone){
+      const sr=D('div','margin-top:10px;');
+      sr.innerHTML='<div style="font-size:10px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;text-align:center;">Open upload page to share</div>';
+      const srow=D('div','display:flex;gap:8px;');
+      [{label:'Instagram',color:'#e1306c',icon:'📸',url:'https://www.instagram.com/reels/'},{label:'TikTok',color:'#69c9d0',icon:'🎵',url:'https://www.tiktok.com/upload'},{label:'YouTube',color:'#ff0000',icon:'▶️',url:'https://studio.youtube.com/'}].forEach(s=>{
+        const a=document.createElement('a'); a.href=s.url; a.target='_blank'; a.rel='noopener noreferrer';
         a.style.cssText=`flex:1;padding:9px 4px;border-radius:8px;font-size:11px;font-weight:600;border:1px solid ${s.color}55;background:${s.color}15;color:${s.color};text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;`;
-        a.textContent=`${s.icon} ${s.label}`;
+        a.innerHTML=`${s.icon} ${s.label}`;
         a.onmouseenter=()=>{a.style.background=s.color+'30';a.style.transform='translateY(-1px)';};
         a.onmouseleave=()=>{a.style.background=s.color+'15';a.style.transform='';};
-        sr.appendChild(a);
+        srow.appendChild(a);
       });
-      shareRow.appendChild(sr);
-      wrap.appendChild(shareRow);
+      sr.appendChild(srow); w.appendChild(sr);
     }
-    return wrap;
+    return w;
   }));
 
-  main.appendChild(left);
+  layout.appendChild(left);
 
-  // ── RIGHT ──
-  const right = el('div','','flex:1;min-width:0;position:sticky;top:20px;');
+  // ────────────── RIGHT ──────────────
 
-  // Layers
-  const layersCard = el('div','',cardStyle()+';margin-bottom:14px;');
-  const layHdr = el('div','','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:14px;');
-  layHdr.textContent = 'Layers';
-  layersCard.appendChild(layHdr);
-
-  const allLayers = [
-    ...state.clips.map(c => ({ id:c.id, label:c.name, kind:c.type==='VID'?'video':'image', visible:true, isClip:true })),
-    ...state.canvasEls,
+  // Layers Panel
+  const layCard=D('div'); layCard.className='card'; layCard.style.marginBottom='14px';
+  const layHdr=D('div','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:14px;');
+  layHdr.textContent='Layers'; layCard.appendChild(layHdr);
+  const allLayers=[
+    ...S.clips.map(c=>({id:c.id,label:c.name,kind:c.type==='VID'?'video':'image',visible:true,isClip:true})),
+    ...S.canvasEls,
   ];
-
-  if (allLayers.length === 0) {
-    const empty = el('div','','font-size:13px;color:rgba(255,255,255,0.25);text-align:center;padding:16px 0;');
-    empty.textContent = 'Add elements to see layers';
-    layersCard.appendChild(empty);
+  if(!allLayers.length){
+    const e=D('div','font-size:13px;color:rgba(255,255,255,0.25);text-align:center;padding:16px 0;');
+    e.textContent='Add elements to see layers'; layCard.appendChild(e);
   } else {
-    const list = el('div','','display:flex;flex-direction:column;gap:4px;');
-    [...allLayers].reverse().forEach(layer => {
-      const isSel = state.selectedEl === layer.id;
-      const row = el('div','',`display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:${isSel?'rgba(255,60,126,0.1)':'rgba(255,255,255,0.04)'};border:${isSel?'1px solid rgba(255,60,126,0.3)':'1px solid transparent'};cursor:${layer.isClip?'default':'pointer'};transition:all .15s;font-size:12px;color:rgba(255,255,255,0.7);`);
-      const icons = {video:'🎬',image:'🖼️',pip:'🖼️',emoji:'😀',shape:'⬜',caption:'✦'};
-      const ico = el('span','','font-size:14px;');
-      ico.textContent = icons[layer.kind]||'✦';
-      row.appendChild(ico);
-      const lbl = el('span','','flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
-      lbl.textContent = layer.label;
-      row.appendChild(lbl);
-      if (!layer.isClip) {
-        // opacity badge
-        if (layer.opacity !== undefined && layer.opacity < 1) {
-          const op = el('span','','font-size:10px;color:rgba(255,255,255,0.35);');
-          op.textContent = Math.round((layer.opacity??1)*100)+'%';
-          row.appendChild(op);
-        }
-        const vis = el('button','','background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;');
-        vis.textContent = layer.visible ? '👁' : '🚫';
-        vis.style.opacity = layer.visible ? '1' : '0.4';
-        vis.onclick = e => { e.stopPropagation(); updateEl(layer.id, { visible: !layer.visible }); };
+    const list=D('div');
+    [...allLayers].reverse().forEach(layer=>{
+      const isSel=S.selectedEl===layer.id;
+      const row=D('div'); row.className='layer-row'+(isSel?' sel':'');
+      if(!layer.isClip) row.onclick=()=>set({selectedEl:isSel?null:layer.id});
+      const icons={video:'🎬',image:'🖼️',pip:'🖼️',emoji:'😀',shape:'⬜',caption:'✦'};
+      const ico=D('span','font-size:14px;flex-shrink:0;'); ico.textContent=icons[layer.kind]||'✦'; row.appendChild(ico);
+      const lbl=D('span','flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'); lbl.textContent=layer.label; row.appendChild(lbl);
+      if(!layer.isClip){
+        // inline opacity mini-slider
+        const op=document.createElement('input'); op.type='range'; op.min='0'; op.max='1'; op.step='0.05'; op.value=layer.opacity??1;
+        op.style.cssText='width:50px;height:3px;flex-shrink:0;';
+        op.title='Opacity';
+        op.addEventListener('mousedown',e=>e.stopPropagation());
+        op.oninput=e=>{ e.stopPropagation(); updateEl(layer.id,{opacity:+e.target.value}); };
+        row.appendChild(op);
+        const vis=makeBtn(layer.visible?'👁':'🚫','background:none;border:none;cursor:pointer;font-size:13px;padding:0 2px;opacity:'+(layer.visible?1:0.4)+';',
+          e=>{ e.stopPropagation(); updateEl(layer.id,{visible:!layer.visible}); });
         row.appendChild(vis);
-        // opacity quick slider
-        const opSlider = document.createElement('input');
-        opSlider.type='range'; opSlider.min='0'; opSlider.max='1'; opSlider.step='0.05';
-        opSlider.value = layer.opacity??1;
-        opSlider.title = 'Opacity';
-        opSlider.style.cssText = 'width:50px;height:3px;accent-color:#ff3c7e;';
-        opSlider.onmousedown = e => e.stopPropagation();
-        opSlider.oninput = e => { e.stopPropagation(); updateEl(layer.id, { opacity: +e.target.value }); };
-        row.appendChild(opSlider);
-        const xbtn = el('button','','background:none;border:none;cursor:pointer;font-size:13px;color:#ef4444;padding:0 2px;');
-        xbtn.textContent = '×';
-        xbtn.onclick = e => { e.stopPropagation(); deleteEl(layer.id); };
-        row.appendChild(xbtn);
-        row.onclick = () => setState({ selectedEl: isSel ? null : layer.id });
+        const xb=makeBtn('×','background:none;border:none;cursor:pointer;font-size:14px;color:#ef4444;padding:0 2px;',
+          e=>{ e.stopPropagation(); deleteEl(layer.id); });
+        row.appendChild(xb);
       }
-      const dot = el('span','','font-size:10px;');
-      dot.style.color = layer.visible ? '#22c55e' : 'rgba(255,255,255,0.2)';
-      dot.textContent = '●';
-      row.appendChild(dot);
+      const dot=D('span','font-size:10px;flex-shrink:0;'); dot.style.color=layer.visible?'#22c55e':'rgba(255,255,255,0.2)'; dot.textContent='●'; row.appendChild(dot);
       list.appendChild(row);
     });
-    layersCard.appendChild(list);
+    layCard.appendChild(list);
   }
-  right.appendChild(layersCard);
+  right.appendChild(layCard);
 
-  // Preview
-  const prevCard = el('div','',cardStyle());
-  const prevHdr = el('div','','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:6px;');
-  prevHdr.textContent = 'Live Preview';
-  prevCard.appendChild(prevHdr);
-  const prevSub = el('p','','font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:14px;');
-  prevSub.textContent = 'Click element to select · drag to move · corner handles to resize';
-  prevCard.appendChild(prevSub);
+  // Preview card
+  const prevCard=D('div'); prevCard.className='card';
+  const ph=D('div','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:6px;');
+  ph.textContent='Live Preview'; prevCard.appendChild(ph);
+  const ps=D('div','font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:14px;');
+  ps.textContent='Click element to select · drag to move · corner handles to resize'; prevCard.appendChild(ps);
 
   // Phone
-  const phoneCtr = el('div','','display:flex;justify-content:center;margin-bottom:14px;');
-  const phone = el('div','',`width:${CANVAS_W}px;height:${CANVAS_H}px;border-radius:28px;background:#111;border:3px solid #333;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);user-select:none;`);
-  phone.onclick = e => { if (e.target === phone) setState({ selectedEl: null }); };
+  const phoneCtr=D('div','display:flex;justify-content:center;margin-bottom:14px;');
+  const phone=D('div',`width:${CW}px;height:${CH}px;border-radius:28px;background:#111;border:3px solid #333;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.7);overflow:visible;`);
+  // Inner clip area
+  const clip=D('div',`position:absolute;inset:0;border-radius:25px;overflow:hidden;`);
+  clip.id='phone-canvas';
+  phone.appendChild(clip);
 
-  // notch
-  const notch = el('div','',`position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:16px;background:#111;border-radius:0 0 12px 12px;z-index:50;`);
+  // Notch on top of phone (outside clip so it's always visible)
+  const notch=D('div','position:absolute;top:0;left:50%;transform:translateX(-50%);width:60px;height:16px;background:#111;border-radius:0 0 12px 12px;z-index:50;');
   phone.appendChild(notch);
 
-  const vidClip = state.clips.find(c=>c.type==='VID');
-  const imgClip = state.clips.find(c=>c.type==='IMG');
+  const vidClip=S.clips.find(c=>c.type==='VID');
+  const imgClip=S.clips.find(c=>c.type==='IMG');
 
-  if (vidClip) {
-    const v = document.createElement('video');
-    v.id = 'preview-video';
-    v.src = vidClip.url;
-    v.loop = true; v.playsInline = true;
-    if (state.playing) v.play();
-    v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
-    v.onloadedmetadata = () => {
-      if (vidClip.trimEnd === null) setState(s => ({ clips: s.clips.map(c => c.id===vidClip.id?{...c,trimEnd:v.duration,duration:v.duration}:c) }));
+  if(vidClip){
+    const v=document.createElement('video');
+    v.id='preview-video'; v.src=vidClip.url; v.loop=true; v.playsInline=true;
+    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+    v.onloadedmetadata=()=>{
+      if(!vidClip.duration) set(s=>({clips:s.clips.map(c=>c.id===vidClip.id?{...c,duration:v.duration,trimEnd:v.duration||c.trimEnd}:c)}));
     };
-    phone.appendChild(v);
-  } else if (imgClip) {
-    const img = document.createElement('img');
-    img.src = imgClip.url;
-    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
-    phone.appendChild(img);
+    clip.appendChild(v);
+    // restore time after re-render
+    setTimeout(()=>{ const vv=document.getElementById('preview-video'); if(vv){ vv.volume=S.volume; vv.muted=S.muted; if(S.playing){vv.currentTime=preservedTime; vv.play();} }},0);
+  } else if(imgClip){
+    const img=document.createElement('img'); img.src=imgClip.url;
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;';
+    clip.appendChild(img);
   } else {
-    const empty = el('div','','position:absolute;inset:0;background:linear-gradient(180deg,#1a1a2e,#0d0d18);display:flex;align-items:center;justify-content:center;z-index:1;');
-    empty.innerHTML = '<span style="font-size:32px;opacity:.2;">▶</span>';
-    phone.appendChild(empty);
+    const empty=D('div','position:absolute;inset:0;background:linear-gradient(180deg,#1a1a2e,#0d0d18);display:flex;align-items:center;justify-content:center;z-index:1;');
+    empty.innerHTML='<span style="font-size:32px;opacity:.2;">▶</span>'; clip.appendChild(empty);
   }
 
-  // overlay effects
-  if (state.overlays.vignette) {
-    const vEl = el('div','',`position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,${state.overlayOpacity.vignette}) 100%);pointer-events:none;z-index:5;`);
-    phone.appendChild(vEl);
-  }
-  if (state.overlays.bars) {
-    const b1 = el('div','',`position:absolute;top:0;left:0;right:0;height:34px;background:rgba(0,0,0,${state.overlayOpacity.bars});pointer-events:none;z-index:5;`);
-    const b2 = el('div','',`position:absolute;bottom:0;left:0;right:0;height:34px;background:rgba(0,0,0,${state.overlayOpacity.bars});pointer-events:none;z-index:5;`);
-    phone.appendChild(b1); phone.appendChild(b2);
-  }
-  if (state.overlays.grain) {
-    const g = el('div','',`position:absolute;inset:0;opacity:${state.overlayOpacity.grain};background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:5;`);
-    phone.appendChild(g);
-  }
-  if (state.overlays.blur) {
-    const bl = el('div','',`position:absolute;inset:0;box-shadow:inset 0 0 ${Math.round(state.overlayOpacity.blur*60)}px rgba(0,0,0,0.8);pointer-events:none;z-index:5;`);
-    phone.appendChild(bl);
+  // Overlay effects
+  const op=S.overlayOpacity;
+  if(S.overlays.vignette){ const v=D('div',`position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,${op.vignette}) 100%);pointer-events:none;z-index:5;`); clip.appendChild(v); }
+  if(S.overlays.bars){ const b1=D('div',`position:absolute;top:0;left:0;right:0;height:34px;background:rgba(0,0,0,${op.bars});pointer-events:none;z-index:5;`); const b2=D('div',`position:absolute;bottom:0;left:0;right:0;height:34px;background:rgba(0,0,0,${op.bars});pointer-events:none;z-index:5;`); clip.appendChild(b1); clip.appendChild(b2); }
+  if(S.overlays.grain){ const g=D('div',`position:absolute;inset:0;opacity:${op.grain};background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:5;`); clip.appendChild(g); }
+  if(S.overlays.blur){ const bl=D('div',`position:absolute;inset:0;box-shadow:inset 0 0 ${Math.round(op.blur*80)}px rgba(0,0,0,0.9);pointer-events:none;z-index:5;`); clip.appendChild(bl); }
+
+  // Static caption (if no caption canvas el exists)
+  if(S.caption && !S.canvasEls.find(e=>e.kind==='caption')){
+    const cd=D('div','position:absolute;bottom:0;left:0;right:0;padding:10px 10px 18px;z-index:8;pointer-events:none;');
+    const ts=TEXT_STYLES.find(t=>t.id===S.textStyle);
+    const ct=D('div',`font-size:${Math.min(S.fontSize*0.3,16)}px;font-weight:${ts?.fw||700};color:${ACCENT[S.accentColor]||'#ff3c7e'};text-shadow:1px 1px 6px rgba(0,0,0,0.95);margin-bottom:3px;`);
+    if(ts?.shadow) ct.style.textShadow='2px 2px 0 #000,1px 1px 6px rgba(0,0,0,0.9)';
+    ct.textContent=S.caption; cd.appendChild(ct);
+    if(S.handle){ const h=D('div','font-size:9px;color:rgba(255,255,255,0.75);text-shadow:0 1px 4px rgba(0,0,0,0.9);'); h.textContent=S.handle; cd.appendChild(h); }
+    clip.appendChild(cd);
   }
 
-  // canvas elements
-  state.canvasEls.filter(e=>e.visible).forEach(cel => {
-    phone.appendChild(makeCanvasEl(cel));
+  // Canvas elements (pip, emoji, shape, caption) — appended to phone (not clip) so handles overflow
+  S.canvasEls.filter(e=>e.visible).forEach(el=>{
+    // append to phone div so resize handles can overflow the clip border
+    const cel=makeCelDOM(el);
+    // position relative to clip area which starts at inset:0 of phone
+    cel.style.position='absolute';
+    phone.appendChild(cel);
   });
 
-  // static caption if no caption canvas el
-  if (state.caption && !state.canvasEls.find(e=>e.kind==='caption')) {
-    const capDiv = el('div','','position:absolute;bottom:0;left:0;right:0;padding:10px 10px 18px;z-index:8;');
-    const ts = TEXT_STYLES.find(t=>t.id===state.textStyle);
-    const capText = el('div','',`font-size:${Math.min(state.fontSize*0.28,15)}px;font-weight:${ts?.fw||700};color:${ACCENT_MAP[state.accentColor]||'#ff3c7e'};text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-bottom:3px;`);
-    if (ts?.shadow) capText.style.textShadow = '2px 2px 0 #000,1px 1px 4px rgba(0,0,0,0.9)';
-    capText.textContent = state.caption;
-    capDiv.appendChild(capText);
-    if (state.handle) {
-      const h = el('div','','font-size:9px;color:rgba(255,255,255,0.7);text-shadow:0 1px 3px rgba(0,0,0,0.9);');
-      h.textContent = state.handle;
-      capDiv.appendChild(h);
-    }
-    phone.appendChild(capDiv);
+  // click phone background to deselect
+  phone.onclick=e=>{ if(e.target===phone||e.target===clip) set({selectedEl:null}); };
+
+  // Big play button (on top, only when paused)
+  if(vidClip && !S.playing){
+    const po=D('div','position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;cursor:pointer;border-radius:25px;');
+    const pc=D('div','width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.3);');
+    pc.innerHTML='<span style="font-size:20px;margin-left:4px;">▶</span>';
+    po.appendChild(pc); po.onclick=e=>{e.stopPropagation();playAll();};
+    phone.appendChild(po);
   }
 
-  // big play btn
-  if (vidClip && !state.playing) {
-    const playOvr = el('div','','position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;cursor:pointer;');
-    const playCirc = el('div','','width:52px;height:52px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);border:2px solid rgba(255,255,255,0.3);');
-    playCirc.innerHTML = '<span style="font-size:20px;margin-left:4px;">▶</span>';
-    playOvr.appendChild(playCirc);
-    playOvr.onclick = e => { e.stopPropagation(); playAll(); };
-    phone.appendChild(playOvr);
-  }
+  phoneCtr.appendChild(phone); prevCard.appendChild(phoneCtr);
 
-  phoneCtr.appendChild(phone);
-  prevCard.appendChild(phoneCtr);
-
-  // Playback controls
-  const ctrlRow = el('div','','display:flex;gap:8px;justify-content:center;margin-bottom:12px;');
-  const playBtn = button('▶ Play',`padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:${state.playing?'rgba(255,60,126,0.15)':'rgba(255,255,255,0.07)'};border:1px solid ${state.playing?'#ff3c7e':'rgba(255,255,255,0.12)'};color:${state.playing?'#ff3c7e':'rgba(255,255,255,0.8)'};cursor:${!vidClip?'not-allowed':'pointer'};opacity:${!vidClip?0.4:1};`, playAll);
-  const stopBtn = button('■ Stop','padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);cursor:pointer;', stopAll);
-  playBtn.disabled = !vidClip;
-  ctrlRow.appendChild(playBtn); ctrlRow.appendChild(stopBtn);
-  prevCard.appendChild(ctrlRow);
+  // Play/Stop controls
+  const ctrl=D('div','display:flex;gap:8px;justify-content:center;margin-bottom:12px;');
+  const pb=makeBtn('▶ Play',`padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:${S.playing?'rgba(255,60,126,0.15)':'rgba(255,255,255,0.07)'};border:1px solid ${S.playing?'#ff3c7e':'rgba(255,255,255,0.12)'};color:${S.playing?'#ff3c7e':'rgba(255,255,255,0.8)'};cursor:${!vidClip?'not-allowed':'pointer'};opacity:${!vidClip?0.4:1};`,playAll);
+  pb.disabled=!vidClip;
+  const sb=makeBtn('■ Stop','padding:7px 20px;border-radius:7px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);cursor:pointer;',stopAll);
+  ctrl.appendChild(pb); ctrl.appendChild(sb); prevCard.appendChild(ctrl);
 
   // Volume
-  const volBox = el('div','','background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;');
-  const volRow = el('div','','display:flex;align-items:center;gap:10px;');
-  const muteBtn = el('button','','background:none;border:none;cursor:pointer;font-size:18px;padding:0;flex-shrink:0;');
-  muteBtn.textContent = state.muted||state.volume===0 ? '🔇' : state.volume<0.5 ? '🔉' : '🔊';
-  muteBtn.onclick = () => { setState(s => ({ muted: !s.muted })); syncVolume(); };
-  volRow.appendChild(muteBtn);
-  const volSlider = document.createElement('input');
-  volSlider.type='range'; volSlider.min='0'; volSlider.max='1'; volSlider.step='0.01';
-  volSlider.value = state.muted ? 0 : state.volume;
-  volSlider.style.cssText = 'flex:1;';
-  volSlider.oninput = e => { setState({ volume: +e.target.value, muted: +e.target.value===0 }); syncVolume(); };
-  volRow.appendChild(volSlider);
-  const volPct = el('span','','font-size:11px;color:rgba(255,255,255,0.4);min-width:34px;text-align:right;');
-  volPct.textContent = (state.muted ? 0 : Math.round(state.volume*100))+'%';
-  volRow.appendChild(volPct);
-  volBox.appendChild(volRow);
-  prevCard.appendChild(volBox);
+  const vb=D('div','background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 14px;');
+  const vr=D('div','display:flex;align-items:center;gap:10px;');
+  const mb=makeBtn(S.muted||S.volume===0?'🔇':S.volume<0.5?'🔉':'🔊','background:none;border:none;cursor:pointer;font-size:18px;padding:0;flex-shrink:0;',()=>{ set(s=>({muted:!s.muted})); syncVolume(); });
+  vr.appendChild(mb);
+  const vs=document.createElement('input'); vs.type='range'; vs.min='0'; vs.max='1'; vs.step='0.01'; vs.value=S.muted?0:S.volume;
+  vs.style.cssText='flex:1;'; vs.oninput=e=>{ set({volume:+e.target.value,muted:+e.target.value===0}); syncVolume(); };
+  vr.appendChild(vs);
+  const vp=D('span','font-size:11px;color:rgba(255,255,255,0.4);min-width:34px;text-align:right;');
+  vp.textContent=(S.muted?0:Math.round(S.volume*100))+'%'; vr.appendChild(vp);
+  vb.appendChild(vr); prevCard.appendChild(vb);
 
-  if (vidClip) {
-    const vname = el('div','','text-align:center;font-size:10px;color:rgba(255,255,255,0.25);margin-top:8px;');
-    vname.textContent = vidClip.name;
-    prevCard.appendChild(vname);
-  }
+  if(vidClip){ const vn=D('div','text-align:center;font-size:10px;color:rgba(255,255,255,0.25);margin-top:8px;'); vn.textContent=vidClip.name; prevCard.appendChild(vn); }
+  if(S.audioName){ const an=D('div','text-align:center;font-size:10px;color:rgba(245,158,11,0.6);margin-top:4px;'); an.textContent='🎵 '+S.audioName; prevCard.appendChild(an); }
 
   right.appendChild(prevCard);
-  main.appendChild(right);
-  root.appendChild(main);
-  return root;
+  layout.appendChild(right);
+  root.appendChild(layout);
+  app.appendChild(root);
 }
 
-// ── DOM HELPERS ────────────────────────────────────────────────────────────
-function el(tag, id, style) {
-  const e = document.createElement(tag);
-  if (id) e.id = id;
-  if (style) e.style.cssText = style;
-  return e;
-}
-function button(text, style, onclick) {
-  const b = document.createElement('button');
-  b.textContent = text; b.style.cssText = style;
-  if (onclick) b.onclick = onclick;
-  return b;
-}
-function input(type, value, onChange, placeholder, extraStyle='') {
-  const i = document.createElement('input');
-  i.type=type; i.value=value; i.placeholder=placeholder||'';
-  i.style.cssText = `background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:14px;padding:10px 12px;outline:none;width:100%;${extraStyle}`;
-  i.oninput = e => onChange(e.target.value);
-  return i;
-}
-function textarea(value, onChange, placeholder) {
-  const t = document.createElement('textarea');
-  t.value=value; t.placeholder=placeholder||'';
-  t.style.cssText = 'width:100%;min-height:60px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:14px;padding:10px 12px;outline:none;resize:vertical;';
-  t.oninput = e => onChange(e.target.value);
-  return t;
-}
-function label(text, mt=0) {
-  const d = document.createElement('div');
-  d.style.cssText = `font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;margin-top:${mt}px;`;
-  d.textContent = text;
-  return d;
-}
-function pillButton(text, active, col, onclick) {
-  const b = document.createElement('button');
-  b.textContent=text;
-  b.style.cssText = `padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid ${active?col:'rgba(255,255,255,0.12)'};background:${active?col+'22':'transparent'};color:${active?col:'rgba(255,255,255,0.6)'};transition:all .15s;`;
-  b.onclick=onclick;
-  return b;
-}
-function segButton(text, active, col, onclick) {
-  const b = document.createElement('button');
-  b.textContent=text;
-  b.style.cssText = `flex:1;padding:9px 0;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid ${active?col:'rgba(255,255,255,0.1)'};background:${active?col+'22':'rgba(255,255,255,0.03)'};color:${active?col:'rgba(255,255,255,0.55)'};transition:all .15s;`;
-  b.onclick=onclick;
-  return b;
-}
-function makeToggle(on, onclick) {
-  const d = document.createElement('div');
-  d.style.cssText = `width:42px;height:24px;border-radius:999px;cursor:pointer;background:${on?'linear-gradient(90deg,#ff3c7e,#a855f7)':'rgba(255,255,255,0.1)'};position:relative;transition:background .2s;flex-shrink:0;`;
-  const knob = document.createElement('div');
-  knob.style.cssText = `position:absolute;top:3px;left:${on?21:3}px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,0.4);`;
-  d.appendChild(knob); d.onclick=onclick;
-  return d;
-}
-function makeSlider(value, min, max, onChange, displayVal, color, labels=null, step=1) {
-  const wrap = document.createElement('div');
-  const row = el('div','','display:flex;align-items:center;gap:10px;');
-  if (labels) { const s=el('span','','font-size:10px;color:rgba(255,255,255,0.35);'); s.textContent=labels[0]; row.appendChild(s); }
-  const slider = document.createElement('input');
-  slider.type='range'; slider.min=min; slider.max=max; slider.step=step; slider.value=value;
-  slider.style.cssText = `flex:1;background:linear-gradient(to right,${color} ${(value-min)/(max-min)*100}%,rgba(255,255,255,0.15) 0);`;
-  slider.oninput = e => onChange(step<1 ? +e.target.value : +e.target.value|0);
-  row.appendChild(slider);
-  if (labels) { const e2=el('span','','font-size:10px;color:rgba(255,255,255,0.35);'); e2.textContent=labels[1]; row.appendChild(e2); }
-  const val = el('span','','font-size:11px;font-weight:700;min-width:40px;text-align:right;'); val.style.color=color;
-  val.textContent=displayVal;
-  row.appendChild(val);
-  wrap.appendChild(row);
+// ─────────────────────────────────────────────
+// TRIM UI
+// ─────────────────────────────────────────────
+function makeTrimUI(clip) {
+  const dur = clip.duration || 30;
+  const end = clip.trimEnd ?? dur;
+  const wrap = D('div','margin-top:8px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;width:200px;');
+  const lbl = D('div','font-size:10px;letter-spacing:.08em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;');
+  lbl.textContent=`✂ ${clip.trimStart.toFixed(1)}s → ${end.toFixed(1)}s`;
+  wrap.appendChild(lbl);
+
+  // Start
+  const sl=D('div','margin-bottom:6px;');
+  const sLbl=D('div','font-size:9px;color:rgba(255,255,255,0.35);margin-bottom:3px;'); sLbl.textContent='Start'; sl.appendChild(sLbl);
+  const sRange=document.createElement('input'); sRange.type='range'; sRange.min='0'; sRange.max=dur.toFixed(1); sRange.step='0.1'; sRange.value=clip.trimStart.toFixed(1); sRange.style.cssText='width:100%;';
+  sRange.oninput=ev=>{
+    const val=Math.min(+ev.target.value, end-0.5);
+    set(s=>({clips:s.clips.map(c=>c.id===clip.id?{...c,trimStart:val}:c)}));
+    const v=document.getElementById('preview-video'); if(v) v.currentTime=val;
+  };
+  sl.appendChild(sRange); wrap.appendChild(sl);
+
+  // End
+  const el=D('div');
+  const eLbl=D('div','font-size:9px;color:rgba(255,255,255,0.35);margin-bottom:3px;'); eLbl.textContent='End'; el.appendChild(eLbl);
+  const eRange=document.createElement('input'); eRange.type='range'; eRange.min='0'; eRange.max=dur.toFixed(1); eRange.step='0.1'; eRange.value=end.toFixed(1); eRange.style.cssText='width:100%;';
+  eRange.oninput=ev=>{
+    const val=Math.max(+ev.target.value, clip.trimStart+0.5);
+    set(s=>({clips:s.clips.map(c=>c.id===clip.id?{...c,trimEnd:val}:c)}));
+  };
+  el.appendChild(eRange); wrap.appendChild(el);
   return wrap;
 }
-function makeSection(num, title, contentFn) {
-  const d = el('div','',cardStyle());
-  const hdr = el('div','','display:flex;align-items:center;gap:10px;margin-bottom:16px;');
-  const badge = el('div','','width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ff3c7e,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;');
-  badge.textContent=num;
-  const t = el('span','','font-size:11px;font-weight:700;letter-spacing:.15em;color:rgba(255,255,255,0.55);text-transform:uppercase;');
-  t.textContent=title;
-  hdr.appendChild(badge); hdr.appendChild(t);
-  d.appendChild(hdr);
-  d.appendChild(contentFn());
-  return d;
-}
-function makeUploadBox(icon, label2, sub, accept, multiple, onFiles) {
-  const d = el('div','','flex:1;border:1.5px dashed rgba(255,255,255,0.15);border-radius:10px;padding:24px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;');
-  d.innerHTML = `<span style="font-size:26px;">${icon}</span><span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">${label2}</span><span style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:.08em;">${sub}</span>`;
-  d.onmouseenter = () => { d.style.borderColor='#ff3c7e'; d.style.background='rgba(255,60,126,0.05)'; };
-  d.onmouseleave = () => { d.style.borderColor='rgba(255,255,255,0.15)'; d.style.background=''; };
-  d.onclick = () => {
-    const inp = document.createElement('input');
-    inp.type='file'; inp.accept=accept; inp.multiple=!!multiple;
-    inp.onchange = e => { if (e.target.files.length) onFiles(e.target.files); };
-    inp.click();
-  };
-  return d;
-}
-function cardStyle() { return 'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 22px;margin-bottom:14px;'; }
 
-// ── INITIAL RENDER ─────────────────────────────────────────────────────────
-render();
+// ─────────────────────────────────────────────
+// DOM HELPERS
+// ─────────────────────────────────────────────
+function D(tag,style) { const e=document.createElement(tag); if(style) e.style.cssText=style; return e; }
+function makeBtn(text,style,onclick){ const b=document.createElement('button'); b.textContent=text; b.style.cssText=style; if(onclick) b.onclick=onclick; return b; }
+function makeInput(type,value,onChange,placeholder,extra=''){
+  const i=document.createElement('input'); i.type=type; i.value=value; i.placeholder=placeholder||'';
+  i.className='text-input'; i.style.cssText+=extra; i.oninput=e=>onChange(e.target.value); return i;
+}
+function fieldLabel(text,mt=0){ const d=D('div',`font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:8px;margin-top:${mt}px;`); d.textContent=text; return d; }
+function makeToggle(on,onclick){
+  const d=document.createElement('button'); d.className='toggle'+(on?' on':'');
+  const k=D('div'); k.className='toggle-knob'; d.appendChild(k); d.onclick=onclick; return d;
+}
+function makeSlider(value,min,max,onChange,displayVal,color,labels=null,step=1){
+  const wrap=D('div');
+  const row=D('div','display:flex;align-items:center;gap:10px;');
+  if(labels){ const s=D('span','font-size:10px;color:rgba(255,255,255,0.35);flex-shrink:0;'); s.textContent=labels[0]; row.appendChild(s); }
+  const sl=document.createElement('input'); sl.type='range'; sl.min=min; sl.max=max; sl.step=step; sl.value=value; sl.style.cssText='flex:1;';
+  sl.oninput=e=>onChange(step<1?+e.target.value:Math.round(+e.target.value)); row.appendChild(sl);
+  if(labels){ const e=D('span','font-size:10px;color:rgba(255,255,255,0.35);flex-shrink:0;'); e.textContent=labels[1]; row.appendChild(e); }
+  const val=D('span','font-size:11px;font-weight:700;min-width:40px;text-align:right;flex-shrink:0;'); val.style.color=color; val.textContent=displayVal; row.appendChild(val);
+  wrap.appendChild(row); return wrap;
+}
+function makeSection(num,title,contentFn){
+  const d=D('div'); d.className='card';
+  const hdr=D('div'); hdr.className='sec-hdr';
+  const badge=D('div'); badge.className='sec-badge'; badge.textContent=num;
+  const t=D('span'); t.className='sec-title'; t.textContent=title;
+  hdr.appendChild(badge); hdr.appendChild(t); d.appendChild(hdr); d.appendChild(contentFn()); return d;
+}
+function makeUploadBox(icon,label,sub,accept,multiple,onFiles){
+  const d=D('div'); d.className='upload-box';
+  d.innerHTML=`<span class="ub-icon">${icon}</span><span class="ub-label">${label}</span><span class="ub-sub">${sub}</span>`;
+  d.onclick=()=>{ const i=document.createElement('input'); i.type='file'; i.accept=accept; i.multiple=!!multiple; i.onchange=e=>{if(e.target.files.length) onFiles(e.target.files);}; i.click(); };
+  return d;
+}
+function makeSegBtn(text,active,col,onclick){
+  const b=document.createElement('button'); b.className='seg-btn'; b.textContent=text;
+  if(active){ b.style.borderColor=col; b.style.background=col+'22'; b.style.color=col; }
+  b.onclick=onclick; return b;
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+renderApp();
 </script>
 </body>
 </html>
